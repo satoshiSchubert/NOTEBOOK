@@ -7,15 +7,11 @@ https://www.zhihu.com/question/23971601?sort=created
 
 ### 数学原理：
 source:https://courses.engr.illinois.edu/ece420/sp2017/UnderstandingKalmanFilter.pdf
-```
+
 ![](pics/6C16B1CE696E6E9637B9F0A764F1FD10.png)
-```
-```
 ![](pics/1ED2D1AE1776F40D7806B72825B0A682.png)
-```
-```
 ![](pics/10A43B16D935315E96FCBAADE2AD3ED6.png)
-```
+
 
 
 ### 代码实现：
