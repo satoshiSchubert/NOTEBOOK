@@ -1,5 +1,8 @@
 # (Note)Learning Semantic-Specific Graph Representation for Multi-Label Image Recognition
   
+原文链接：
+[https://arxiv.org/pdf/1908.07325.pdf](https://arxiv.org/pdf/1908.07325.pdf)
+
 目前还不清楚内涵的关键词：
 1. multi-label recognition
 2. semantic-aware
