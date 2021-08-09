@@ -1,7 +1,9 @@
 # (Note)Learning Semantic-Specific Graph Representation for Multi-Label Image Recognition
   
-原文链接：
-[https://arxiv.org/pdf/1908.07325.pdf](https://arxiv.org/pdf/1908.07325.pdf)
+## 论文阅读记录
+
+原文：
+https://arxiv.org/pdf/1908.07325.pdf
 
 目前还不清楚内涵的关键词：
 1. multi-label recognition
@@ -128,10 +130,326 @@ https://zhuanlan.zhihu.com/p/85677181
 
 5. Optimization
 
+## 代码复现记录
+
+#### 15：30，8/1
+开始干活
+
+__目标是：搭建论文中的ResNet-101 多标签分类baseline，并在COCO数据集上训练调参，使其能达到约80.3的mAP。__
+
+网络结构的描述：
+> Specifically, we simply replace the last fully connected layer of the ResNet-101 with a 2,048-to-C fully connected layer and use C sigmoid functions to predict the probability of each category
+
+去掉最后一个全连接层，换成一个2048-to-C的全连接层，然后使用C sigmoid函数去预测每一类的概率。
+
+训练和测试设定：
+
+损失函数用交叉熵
+
+作者使用的imagenet预训练的ResNet-101模型
+
+Adam优化器，batchsize = 4，动量为0.99和0.9
+
+初始学习率：10^-5,误差趋于平稳时，再除以10.
+
+input:640x640， {640, 576, 512, 384, 320}随机裁切patches，最后这些patches再resize到576x576.
+对于testing，直接先resize to 640x640再中心裁切576x576
+
+metrics：mean average precision。
+
+每张图取得分最高的三个标签，并和实际值比对。
+
+对于COCO数据集，再训练集上训练，在验证集上测试。
+
+#### 16：38, 8/1
+
+下载coco-2014数据集了，用迅雷在这个镜像站下载，听说比官网快很多
+
+https://pjreddie.com/projects/coco-mirror/
+
+但是有一个疑惑，coco数据集是目标检测的，要怎么改成multi-labels的
+
+作者好像把这一步的处理直接写道datasets/cocodataset.py里了
+```python
+class CoCoDataset(data.Dataset):
+    def __init__(self, image_dir, anno_path, input_transform=None, labels_path=None):
+
+        ...
+      
+      self.labels = []
+      if self.labels_path:
+	      self.labels = np.load(self.labels_path).astype(np.float64)
+         self.labels = (self.labels > 0).astype(np.float64)
+ 	   else:
+         l = len(self.coco)
+         for i in range(l):
+            item = self.coco[i]
+            print(i)
+            categories = self.getCategoryList(item[1])
+            label = self.getLabelVector(categories)               
+            self.labels.append(label)
 
 
+```
+要不然先用一个阉割版的coco跑起来先吧。。。整个19G肯定是跑不起来了
 
 
+#### 17：22, 8/1
+
+谷歌了一下multi-label classification相关，发现腾讯在18年的时候也搞了个多标签检测的baseline。。。
+
+pytorch上的一个讨论，看起来不错噢：
+
+https://discuss.pytorch.org/t/transfer-learning-for-multi-label-classification-from-a-single-label-model/16755
+
+感觉难点会出现在最后mAP的计算规则部分？虽然说可以看一下论文代码是怎么算的
+
+#### 23：10，8/4
+我先试着把论文代码的数据集读取和处理的代码框架移植过来
+
+目前已有的环境：
+| Env | Libs |
+|-----|------|
+|base|tf-gpu-1.13|
+|TEST|torch-1.1.0|
+|grad_cam|torch-1.5.0+cu101|
+|tf2|tf-2.0.0|
+|workspace|N/A|
+|workspace37|tf-gpu-2.4.1|
+
+经过测试，grad_cam环境是比较适合的
+
+#### 0：22，8/4
+
+刚刚解决了调用论文代码里cocodataset.py时出现的一个小bug。
+本来是想直接调用cocodataset里的CoCoDataset类，但是首先发现论文代码里并没有提供缺少的category.json文件，coco数据集里也没有。猜想应该是类别名到id的一个映射，于是用了官方给的一个小脚本打印出了category和对应的id：
+
+https://tech.amikelive.com/node-718/what-object-categories-labels-are-in-coco-dataset/
+
+这样就有了category的json文件了。但是后来发现还是报错：
+```python
+   label = self.getLabelVector(categories)
+
+  File "L:\sysuTask\ResNet-101-BM\cocodataset.py", line 56, in getLabelVector
+    print("debug:",self.category_map[str(c)])
+
+TypeError: list indices must be integers or slices, not str
+```
+然而print出来的c是整数。。。大胆猜测，论文作者的数据集的c应该是类别名，因此需要一个category.json映射到id，然而我的数据集的c已经是id了，那就不需多此一举，
+```python
+        for c in categories:
+            index = c-1
+            label[index] = 1.0 / label_num
+        return label
+```
+改成这样就ok了，睡觉。
+
+#### 16:05, 8/4
+打算先用40504个样本，先生成list之后保存，以备下次再用。
+
+```python
+cuda:0 -> GeForce GTX 1050 is available.
+loading annotations into memory...
+Done (t=7.29s)
+creating index...
+index created!
+  2%|▏         | 890/40504 [02:59<1:16:36,  8.62it/s]
+```
+python list的保存和读取：
+
+https://blog.csdn.net/weixin_42769131/article/details/104242416?utm_medium=distribute.pc_relevant.none-task-blog-2~default~baidujs_title~default-0.control&spm=1001.2101.3001.4242
+
+数据流：
+
+``class CoCoDataset(in cocodataset.py) -> train_set(in transforms.py) -> train_loader(in transforms.py) -> get_train_test_set(in main.py)``
+
+#### 9：10，8/5
+*args 和 **kwargs的用法
+
+https://www.jianshu.com/p/0ed914608a2c
+
+看了一下腾讯AIlab的resnet，最后一层：
+```python
+self.logit = self._fully_connected(x, out_dim=self.num_classes)
+```
+那么我就直接把最后一个fc改成
+``self.fc = nn.Linear(2048, num_classes)``就好了
+
+BCEWithLogitsLoss是用来计算多标签分类的误差的：
+
+https://blog.csdn.net/qq_22210253/article/details/85222093
+
+打算使用预训练+coco上finetune，pytorch加载与训练模型：
+```python
+state_dict = torch.load('trained.pth')
+model.load_state_dict(state_dict)
+```
+这样可能会报错，因为总会有几个key对应不上，要用strich=False比较好：
+```python
+model.load_state_dict(state_dict, strict=False)
+```
+以上参考：
+https://blog.csdn.net/t20134297/article/details/110533007
+
+#### 8：37 8/6
+昨晚挂了一晚竟然没成功保存下来，气死
+今天又要花一个早上生成list了
+``3%|▎         | 2881/82783 [02:40<7:58:02,  2.79it/s]``
+
+半小时白给。。。
+```python
+OSError: image file is truncated (9 bytes not processed)
+ 29%|██▉       | 23807/82783 [37:31<2:02:18,  8.04it/s]
+```
+发现问题了，第23086张照片有问题。
+要加一句``Image.LOAD_TRUNCATED_IMAGES = True``
+https://blog.csdn.net/hzs3237259/article/details/108188323
+
+但是改完coco.py中的代码后又报错了，报错如下
+```python
+TypeError: super(type, obj): obj must be an instance or subtype of type
+```
+猜测是coco.py作为一个被调用脚本在运行一次后如果修改它的内容，再调用时内核发现两者不一致而报的错，因此每次改完coco.py之后都需要restart kernel(好麻烦)
+
+加了``Image.LOAD_TRUNCATED_IMAGES = True``还是不行啊。。。
+啊这。。。。看了下，我本来以为coco.py只调用了Image所以就擅作主张把``ImageFile.LOAD_TRUNCATED_IMAGES = True``改成了``Image.LOAD_TRUNCATED_IMAGES = True``
+但是实际上这样改没有用(也不知道为啥没报错)，如果没用到ImageFile就需要import imagefile，所以正确的做法应该是在coco.py中完整地加入下面两行代码：
+```python
+from PIL import ImageFile
+ImageFile.LOAD_TRUNCATED_IMAGES = True
+```
+浪费半个小时。。。不过也没办法，这种错误碰到下次就知道了
+
+#### 16：37 8/6
+
+出了问题
+```python
+  File "D:\Anaconda\envs\grad_cam\lib\multiprocessing\reduction.py", line 60, in dump
+    ForkingPickler(file, protocol).dump(obj)
+
+BrokenPipeError: [Errno 32] Broken pipe
+```
+好像是因为多线程的原因?
+看了一下源码，找到了。跟踪报错到 dataloader .py ,有：
+```python
+    def __iter__(self):
+        if self.num_workers == 0:
+            return _SingleProcessDataLoaderIter(self)
+        else:
+            return _MultiProcessingDataLoaderIter(self)
+```
+所以应该要把worker数设置成0
+
+```python
+  File "L:\sysuTask\ResNet-101-BM\resnet.py", line 157, in forward
+    x = self.fc(x)
+  File "D:\Anaconda\envs\grad_cam\lib\site-packages\torch\nn\modules\module.py", line 550, in __call__
+    result = self.forward(*input, **kwargs)
+  File "D:\Anaconda\envs\grad_cam\lib\site-packages\torch\nn\modules\linear.py", line 87, in forward
+    return F.linear(input, self.weight, self.bias)
+  File "D:\Anaconda\envs\grad_cam\lib\site-packages\torch\nn\functional.py", line 1612, in linear
+    output = input.matmul(weight.t())
+RuntimeError: size mismatch, m1: [73728 x 9], m2: [2048 x 90]
+```
+这个报错应该和我改resnet里的最后一层fc有关。我设定的fc是2048x90(class_num)，但是他这个mismatch到底是啥意思，
+论文里面不也是说2048 to c。。。先把2048改成73728看看会不会报错，或者我在想要不要73728-2048-c这样加两层,
+这样隐含层应该就是2048个节点了吧
+```python
+RuntimeError: size mismatch, m1: [73728 x 9], m2: [73728 x 90] 
+```
+但是这样还是不行，难道要完全一样吗。。。
+懂了。。。pytorch的规则是[a,b],[b,c]这样，但是上一层怎么直接就到9了啊。。。
+
+记录一下
+```python
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.layer3(x)
+        x = self.layer4(x) [4, 2048, 18, 18]
+        x = self.avgpool1(x) [4, 2048, 9, 9]
+        x = x.view(x.size(0), -1) [4, 591872]
+        x = self.fc(x) 
+        
+        				这种情况下报错：[147456 x 18] mismatch [2048 x 90]
+        				对比一下应该是 4x2048x18 = 147456, 所以要搞一个类似于
+        				reshape的东西，给他定型一下
+        				顺便也解释了为什么avgpool会出现73728*9：
+        				4 x 2048 x 18 x 18 -> 
+        				147456 x 18 -> 
+        				2654208 ->
+        				avgpool的stride=2,所以要除以4,就有
+        				2654208/4=663552 -> 73728 x 9 
+```     			
+最后还是直接手动设计后面的几层，因为一层的avgpooling出来的特征感觉太多了，怕直接全连接电脑吃不消，于是用了两层的pooling，然后直接(如果后面效果不好这是一个可以考虑改进的地方)：
+```python
+        定义：
+        self.avgpool1 = nn.AvgPool2d(3, stride=2)
+        self.avgpool2 = nn.AvgPool2d(2, stride=1)
+        #self.fc = nn.Linear(8192, num_classes)
+        #self.fc = nn.Linear(512 * block.expansion, num_classes)
+        self.fc = nn.Linear(100352, num_classes) #[100532 = 2048*7*7]
+
+        forward：
+        x = self.layer4(x)
+        x = self.avgpool1(x)
+        x = self.avgpool2(x) #[4, 2048, 7, 7]
+        #print(x.shape)
+        x = x.view(x.size(0), -1)
+        #print(x.shape)
+        x = self.fc(x)
+        #print(x.shape)
+        #assert False
+```   
+
+跑起来了！！！
+```python
+Epoch: [0][0/20696]     Time 67.750 (67.750)    Loss 0.6822 (0.6822)
+Epoch: [0][5/20696]     Time 1.461 (12.713)     Loss 0.6441 (0.6754)
+Epoch: [0][10/20696]    Time 1.113 (7.569)      Loss 0.6201 (0.6552)
+Epoch: [0][15/20696]    Time 1.153 (5.588)      Loss 0.5714 (0.6338)
+Epoch: [0][20/20696]    Time 1.378 (4.573)      Loss 0.5413 (0.6116)
+```
+现在23：39，刚刚ctrl+c复制一下log结果keyboard interrupt了。。。反正今晚也跑不完，至少是能跑起来的。明天跑完看一下mAP吧(总感觉没这么简单)
+
+
+#### 9:00 8/9
+移植了一个jupyternotebook脚本，方便colab上跑：
+https://github.com/satoshiSchubert/WorkSpace/blob/main/sysuTask.ipynb
+
+很烦，colab上gpu有使用限额，tpu又要更改代码
+现在在参照官方的pytorch tpu colab例程修改代码：
+https://colab.research.google.com/github/pytorch/xla/blob/master/contrib/colab/resnet18-training.ipynb#scrollTo=8vMl96KLoCq8
+
+还是失败了，报了一个很底层的数组越界错误，很难debug
+现在创建了一个新的谷歌账号来蹭它的gpu
+
+Colab上蹭的TeslaT4，一个iter按0.25s算，预计1.5h可以跑完
+
+#### 13：37 8/9
+一个半小时好不容易训练完一个epoch，结果validate()里面的tensor.item()忘记改，白搞
+
+#### 18：22 8/9
+目前是跑完两个Epoch了，我看loss值基本上下降得比较慢了(也有可能跑满200个Epoch还能有很可观的提升，但是还是得看mAP的值才能证明)
+很奇怪的是，不知道是我代码没改好还是其他原因，colab没法把mAP值打印出来：
+```python
+Test: [10125/10126]	Time 0.215 (0.213)	Loss 0.0822 (0.1077)
+(40504, 180)
+ * mAP nan
+```
+不过万幸的是两个Epoch跑出来的checkpoint和score都保存下来了，并且score里存储了预测值和标签，应该是可以拿来直接计算的，但是就是得额外再写个脚本了。
+
+#### 第一次训练结论(Epoch = 2)：
+
+用excel看了一下生成的结果score文件，网络着重在分类person类了，其他类的输出的几乎全都是负值，准确度差很多。。猜测应该是person出现的频率最高且大大高于其他类，所以网络给person正值时可以使其loss较小。看来很可能是因为训练的Epoch不够，毕竟才2轮，虽然一轮就要一个半小时。多训练几轮相信会改善。
+
+计算mAP的时候报错：
+```python
+RuntimeWarning: invalid value encountered in true_divide
+```
+这个问题应该是在0/0的时候造成的
+通过在分子分母同时加上1e-10,完美解决。
+
+但是第一轮算出来的mAP只有0.1016077459353008。。。。。。太低了吧
 
 
 
