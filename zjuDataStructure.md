@@ -122,6 +122,9 @@ void SelectionSort(int List[],int N)
 - 一个for循环的时间复杂度等于循环次数乘以循环体代码的复杂度
 - if-else结构的复杂度取决于if的条件判断复杂度和两个分支部分的复杂度，总体复杂度取三者中最大
 
+$$
+f(i,j) = max(0,\Sigma_{k=i}^jA_k)
+$$
 
 
 # 第二章
