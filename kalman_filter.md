@@ -15,6 +15,9 @@ source: https://courses.engr.illinois.edu/ece420/sp2017/UnderstandingKalmanFilte
 
 
 ### 代码实现：
+https://github.com/mabhisharma/Multi-Object-Tracking-with-Kalman-Filter
+https://github.com/Myzhar/simple-opencv-kalman-tracker
+
 ```python
 class KalmanFilter(object):
 	def __init__(self, dt=1,stateVariance=1,measurementVariance=1, 
