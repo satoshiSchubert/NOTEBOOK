@@ -1,2 +1,2 @@
 # NOTEBOOK
-用来存放笔记和提纲的地方
+A place to store notebooks and summaries.
