@@ -259,10 +259,63 @@ Ptrl->Last+1;
    ```
 #### 线性表链式存储的实现
 > 只需逻辑上相邻，不需物理上相邻。通过**链**建立起数据元素之间的逻辑关系。
-> 因此，插入活删除不需要移动元素，只需要修改**链**即可。
+> 因此，插入或删除不需要移动元素，只需要修改**链**即可。
 
+| $\sigma_1$ | -> | $\sigma_2$ | -> |
+| --- | --- | --- | --- |
 
+**链表定义**
+```cpp
+typedef struct LNode *List;
+struct LNode{
+    ElementType Data;
+    List Next
+};
+struct LNode L;
+List PtrL;
+```
 
+#### 链表主要操作的实现
+1. 求表长
+   ```cpp
+   int Length(List PtrL)
+   {
+       List p = PtrL; //p指向链表的第一个结点
+       int j = 0;
+       while(p){
+           //对链表进行一次遍历，当遍历到最后一个元素时，指针p=NULL，就会终止循环。
+           p = p->Next;
+           j++;
+       }
+       return j++;
+   }
+   ```
+2. 查找
+   ```cpp
+   //1.按序号查找
+   List FindKth(int K, List PtrL)
+   {
+       List p = PtrL;
+       int i = 1;
+       while(p !=NUll&& i<K){
+           p = p->Next;//指向链表下一个
+           i++;
+       }
+       if(i == K)
+            return p;
+       else return NULL;//找到第K个的指针值，返回p，否则返回空。
+   }
+
+   //2.按值查找
+   List Find(ElementType X, List PtrL)
+   {
+       List p = PtrL;
+       while(p!=NULL && p->Data!=X){
+           p=p->Next;
+       }
+       return p;
+   }
+   ```
 
 
 
