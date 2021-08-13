@@ -196,6 +196,10 @@ PtrL->Data[i];
 L.Last+1;//或者
 Ptrl->Last+1;
 ```
+
+结构体和结构体指针的理解和使用：
+https://blog.csdn.net/weixin_36209467/article/details/82261286
+
 #### 线性表顺序存储的主要操作的实现
 
 （这里为什么要用结构体指针呢？可能是因为使用结构体进行操作的时候，比如作为函数参数，就要**复制**整个结构体，占内存？如果用指针，只需要复制4个字节（指针长度）即可，节省性能？）
@@ -316,6 +320,74 @@ List PtrL;
        return p;
    }
    ```
+3. 插入
+   ```cpp
+   /*
+   1.先构造一个新节点，用s指向
+   2.再找到第i-1个结点，用p指向
+   3.s->Next = p->Next
+   4.p->Next = s
+   */
+   List Insert(ElementType X, int i, = List PtrL)
+   {
+       List p,s;
+       if(i == 1){
+           //新节点若插在表头，要单独考虑
+           s = (List)malloc(sizeof(struct LNode));//先分配空间
+           s->Data = X;
+           s->Next = PtrL;//插在表头
+           return s;//同时，返回新表的表头（已经变了）
+       }
+       p = FindKth(i-1, PtrL);//找到指向这个序号所对应结点的指针值
+       if(p = NULL){
+           printf("argument error.");
+           return NULL;
+       }
+       else{
+           s = (List)malloc(sizeof(struct LNode));
+           s->Data = X;
+           s->Next = p->Next;
+           p->Next = s;
+           return PtrL;//表头位置不变
+       }
+   }
+   ```
+4. 删除
+   ```cpp
+   /*
+   1.若要删除第i个结点，先p指向第i-1个结点
+   2.然后s指向第i个结点
+   3.修改指针，p->Next=s->Next,第i个元素被丢出链表
+   4.free(s),释放空间
+   */
+   List Delete(int i,List PtrL)
+   {
+       List p,s;
+       if(i==1){
+           //单独处理删除表头的情况
+           s = PtrL;
+           if(PtrL!=NULL){
+               PtrL = PtrL->Next;
+           }else return NULL;
+           free(s);
+           return PtrL;
+       }
+       p = FindKth(i-1,PtrL);
+       if(p = NULL){
+           printf("argument error:%dth",i-1);
+           return NULL;
+       }else if(p->Next == NULL){
+           printf("argument error:%dth",i);
+           return NULL
+       }else{
+           s = p->Next;
+           p->Next = s->Next;
+           free(s);
+           return PtrL;
+       }
+   }
+   ```
+#### 广义表
 
 
 
