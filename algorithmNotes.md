@@ -12,7 +12,8 @@ categories:
 <img src='https://img.shields.io/badge/style-Chinese-c45a65.svg?style=flat-square' />
 
 # Notebook for Algorithm Ploblems
-
+分类参考：
+https://books.halfrost.com/leetcode/ChapterTwo/Linked_List/
 
 
 ### 2. Add Two Numbers
