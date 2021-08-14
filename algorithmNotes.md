@@ -12,11 +12,23 @@ categories:
 <img src='https://img.shields.io/badge/style-Chinese-c45a65.svg?style=flat-square' />
 
 # Notebook for Algorithm Ploblems
+---
 分类参考：
 https://books.halfrost.com/leetcode/ChapterTwo/Linked_List/
 
+### 目录：
 
+LEETCODE:
+- [2.AddTwoNumbers](#2-add-two-numbers)
+
+
+LUOGU:
+- [P1014.Cantor表](#p1014-noip1999-普及组-cantor-表)
+
+---
 ### 2. Add Two Numbers
+https://leetcode.com/problems/add-two-numbers/
+
 **[LEETCODE] [LinkedList]**
 
 date: 2021-8-14 0:27:00
@@ -97,3 +109,63 @@ public:
 Comment:
 
 学完链表之后做（抄）的第一道题，虽然是Medium难度。抄完感觉对linked list的认识加深了，尤其是如何处理新增加节点和原节点之间的链接指向关系。
+
+
+
+
+### P1014 [NOIP1999 普及组] Cantor 表
+https://www.luogu.com.cn/problem/P1014
+
+**[LUOGU] [模拟] [枚举，暴力]**
+
+date: 2021-8-14 0:27:00
+
+Answer1:
+```cpp
+#include <stdio.h>
+#include <stdlib.h>
+#include "iostream"
+using namespace std;
+int main(void)
+{
+	int N, a, b, odd, sum = 0; // a/b
+	cin >> N;
+	// 可以直接计算N对应的是第几个循环的
+	int count = 0;
+	while (1) {
+		for (int i = 1; i <= N; i++) {
+			odd = i % 2; //even=1则从上往下：1/4,2/3,...
+			sum = i + 1;
+			if (odd) {
+				for (int j = 0; j < i; j++) {
+					a = 1 + j;
+					b = i - j;
+					count++;
+					if (count == N) {
+						cout << b << '/' << a << endl;
+						goto outloop;
+					}
+				}
+			}
+			else {
+				for (int j = 0; j < i; j++) {
+					b = 1 + j;
+					a = i - j;
+					count++;
+					if (count == N) {
+						cout << b << '/' << a << endl;
+					}
+				}
+			}
+		}
+	}
+outloop:
+	system("pause");
+	return 0;
+}
+```
+Comment:
+
+是入门难度的题，虽然还是做了挺久。。。题目本身似乎没有什么技巧，只要找到规律模拟就行了。虽然很简单，但是还是贴上来纪念一下，毕竟万事开头难，希望将来能够坚持下去，不要再放弃了。
+
+

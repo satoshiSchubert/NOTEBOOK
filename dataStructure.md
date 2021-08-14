@@ -11,9 +11,10 @@ categories:
 <a href="https://github.com/satoshiSchubert" target="_blank"><img src="https://img.shields.io/badge/Github-@SatoshiNg-f3e1e1.svg?style=flat-square&logo=GitHub"></a>
 <img src='https://img.shields.io/badge/style-Chinese-c45a65.svg?style=flat-square' />
 
+# Notebook for DataStructure
+---
 
-
-# 第一讲 基本概念
+## 第一讲 基本概念
 
 
 
@@ -132,8 +133,8 @@ $$
 **分治法**，分而治之
 > 把一个大而复杂的问题切分成小的块，并分别解决他们，最后再进行综合。
 
-
-# 第二讲 线性结构
+---
+## 第二讲 线性结构
 ### 线性表及其实现
 #### 多项式的表示
 
