@@ -451,7 +451,22 @@ RuntimeWarning: invalid value encountered in true_divide
 
 但是第一轮算出来的mAP只有0.1016077459353008。。。。。。太低了吧
 
+#### 10:00 8/15
 
+根据学长的建议，把原来的resnet直接改成原汁原味的resnet：
+```python
+    model = torchvision.models.resnet101(pretrained=True)
+    model.fc = nn.Sequential(
+    nn.Dropout(0.5),
+    nn.Linear(2048, num_classes)
+    )
+```
+transform部分也修改了，改成resnet所对应的预处理方法
+
+修改之后每一例需要的训练时间是0.073s,比原来的0.25s快了大约4倍，很好！
+我想应该也是图片预处理部分变得更简单了，因此快了很多
+
+把Epoch设定到20应该问题不大，训练时间也是可接受的
 
 
 
