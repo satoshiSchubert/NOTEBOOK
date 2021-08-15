@@ -468,5 +468,49 @@ transform部分也修改了，改成resnet所对应的预处理方法
 
 把Epoch设定到20应该问题不大，训练时间也是可接受的
 
+update：
+
+第一个Epoch就能达到0.368的mAP，说明之前那种训练方式很有问题。。。
+我估计问题出在原来代码的图片预处理部分里面的各种Crop操作。
+另外原来的网络最后的fc层也没有改好，最后导致训练的效果很差（训练效率还很低。。。）
+
+#### 12:45 8/15
+|Epoch|mAP|Time|
+| -- | -- | -- |
+| Epoch01 | 0.368 | 12:47 |
+| Epoch02 | 0.467 | 13:00 |
+| Epoch03 | 0.506 | 13:40 |
+
+
+
+但是非常疑惑，下面是正经的ResNet101结构，尤其是最后几层：
+```python
+        x = self.conv5(x)
+        x = self.avg_pool(x)
+        x = x.view(x.size(0), -1)
+        x = self.fc(x)
+```
+其中，
+```python
+        self.conv5 =self._make_layer(in_channel=1024, out_channel=512, block=blocks[3], downsampling=downsampling, stride=2)
+        self.avg_pool = AvgPool2d(kernel_size=7)
+        self.fc = Linear(2048, class_nums)
+```
+我的定义：
+```python
+        x = self.layer4(x)
+        x = self.avgpool1(x) #output:[4,2048,8,8]
+        x = x.view(x.size(0), -1) #output:[4,131072]
+        x = self.fc(x)
+```
+其中：
+```python
+        self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
+        self.avgpool1 = nn.AvgPool2d(3, stride=2)
+        self.fc = nn.Linear(2048, num_classes)
+```
+
+
+它也是只用了一层fc(2048,num_classes),和我第一次用的一样，那为啥它不会报mismatch的错误啊
 
 
