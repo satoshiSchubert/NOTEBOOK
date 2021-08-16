@@ -19,11 +19,10 @@ https://books.halfrost.com/leetcode/ChapterTwo/Linked_List/
 ### 目录：
 
 LEETCODE:
-- [# Notebook for Algorithm Ploblems](#-notebook-for-algorithm-ploblems)
-  - [目录：](#目录)
+
   - [2. Add Two Numbers](#2-add-two-numbers)
   - [P1014 [NOIP1999 普及组] Cantor 表](#p1014-noip1999-普及组-cantor-表)
-  - [83. Remove Duplicates from Sorted List](#83-remove-duplicates-from-sorted-list)
+  - [82. Remove Duplicates from Sorted List II](#82-remove-duplicates-from-sorted-list-ii)
 
 LUOGU:
 - [P1014.Cantor表](#p1014-noip1999-普及组-cantor-表)
@@ -40,7 +39,7 @@ date: 2021-8-14 0:27:00
 > You are given two non-empty linked lists representing two non-negative integers. The digits are stored in reverse order, and each of their nodes contains a single digit. Add the two numbers and return the sum as a linked list.
 > You may assume the two numbers do not contain any leading zero, except the number 0 itself.
 
-Example1:
+Example:
 ```cpp
 Input: l1 = [2,4,3], l2 = [5,6,4]
 Output: [7,0,8]
@@ -171,57 +170,71 @@ Comment:
 
 是入门难度的题，虽然还是做了挺久。。。题目本身似乎没有什么技巧，只要找到规律模拟就行了。虽然很简单，但是还是贴上来纪念一下，毕竟万事开头难，希望将来能够坚持下去，不要再放弃了。
 
-### 83. Remove Duplicates from Sorted List
+### 82. Remove Duplicates from Sorted List II
 https://leetcode.com/problems/remove-duplicates-from-sorted-list/
 
-**[LEETCODE] [Medium] [LinkedList] **
+**[LEETCODE] [Medium] [LinkedList]**
 
 date: 2021-8-16 15:45:00
 
+>Description:
+>
+>Given the head of a sorted linked list, delete all nodes that have duplicate numbers, leaving only distinct numbers from the original list. Return the linked list sorted as well.
+
+Example:
+```cpp
+Input: head = [1,2,3,3,4,4,5]
+Output: [1,2,5]
+Input: head = [1,1,1,2,3]
+Output: [2,3]
+```
+
 Answer1:
 ```cpp
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode() : val(0), next(nullptr) {}
+ *     ListNode(int x) : val(x), next(nullptr) {}
+ *     ListNode(int x, ListNode *next) : val(x), next(next) {}
+ * };
+ */
+
 class Solution {
 public:
     ListNode* deleteDuplicates(ListNode* head) {
-        int copy;
-        ListNode *prev, *clonehead, *clone;
-        clonehead = head; 
-        while(1){
-            if(!head){
-                break;//need debug
-            }
-            copy = head->val;//当前值
-            prev = head->next;//prev探路
-            if(!prev){
-                goto outloop;
-            }
-            if(copy == prev->val){
-                head->next = prev->next;
-                prev = prev->next;
-                if(!prev || !head){
-                        goto outloop;
-                        }
-                while(copy == prev->val){
-                    if(!prev || !head){
-                        goto outloop;
-                        }
-                    head->next = prev->next;
-                    prev = prev->next;
-                    if(!prev || !head){
-                        goto outloop;
-                        }
+        // sentinel Head, 即人为在链表前面添加一个value=0的头，以避免[1，1，1，1]这种edge case.
+        ListNode *sentinel = new ListNode(0,head); //包含虚表头的完整链表
+        
+        // Predecessor = the last node outside the sublist of duplicates
+        ListNode *pred = sentinel;
+        
+        while(head != NULL){
+            if(head != NULL && head->next != NULL && head->val == head->next->val)
+            {
+                while(head != NULL && head->next && head->val == (head->next)->val){
+                    head = head->next;
                 }
+                pred->next = head->next; //注意，这里只是给next赋值，pred本身并没有动，这样即使next是另外一列duplicate也没事
+            }else{
+                pred = pred->next; //前方没有duplicate，可以前移
             }
             head = head->next;
         }
-    outloop:
-    return clonehead;
+        return sentinel->next; //这里又忽略了虚表头，这样若输入是[1,1,1]，加入虚表头后[0,1,1,1]，计算完[0,'null']，最终返回则是[‘null] 
     }
+    
 };
 ```
 comment:
 
-很简单的链表题，判断一下改变链表的next绕过下一个重复的结点就行。这个代码写的很不整齐，即使这样也还是想记录一下嘿嘿。
+这一题是83题(Remove Duplicates from Sorted List)的加强版本，相较于83题（碰到重复的子列只需保留一个，比如[1,2,3,3,4,4,5]->[1,2,3,4,5]）这一题要求完全删去重复的子列，得到[1,2,5]。这在碰到极端情况时（比如[1,1,1,1]->[]）就特别难处理，用83题的方法时就得考虑很多的if，尤其是表头也属于重复子列的情况。非常丢脸，这道题前后卡了起码两个小时。。。后来还是看了solution。<br/>
+Solution中也特意点出了[1，1，1，1]这种edge case，但是它用了一个极为巧妙的方法，就是设定一个 pseudo-head伪表头，值为0且链接指向input的链表的表头，这样就规避了输入样例中[1，1，1，1]这样棘手的情况，具体分析如下： <br/>
 
 
+
+
+![](https://github.com/satoshiSchubert/NOTEBOOK/blob/main/pics/leetcodeP82.png)
 
