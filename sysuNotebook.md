@@ -476,10 +476,11 @@ update：
 
 
 但是非常疑惑，下面是正经的ResNet101结构，尤其是最后几层：
+
 ```python
         x = self.conv5(x)
-        x = self.avg_pool(x)
-        x = x.view(x.size(0), -1)
+        x = self.avg_pool(x) #avgpool: torch.Size([4, 2048, 1, 1])
+        x = x.view(x.size(0), -1) #Flatten: torch.Size([4, 2048])
         x = self.fc(x)
 ```
 其中，
@@ -501,40 +502,8 @@ update：
         self.avgpool1 = nn.AvgPool2d(3, stride=2)
         self.fc = nn.Linear(2048, num_classes)
 ```
-
-
-它也是只用了一层fc(2048,num_classes),和我第一次用的一样，那为啥它不会报mismatch的错误啊
-
-
-但是非常疑惑，下面是正经的ResNet101结构，尤其是最后几层：
-```python
-        x = self.conv5(x)
-        x = self.avg_pool(x)
-        x = x.view(x.size(0), -1)
-        x = self.fc(x)
-```
-其中，
-```python
-        self.conv5 =self._make_layer(in_channel=1024, out_channel=512, block=blocks[3], downsampling=downsampling, stride=2)
-        self.avg_pool = AvgPool2d(kernel_size=7)
-        self.fc = Linear(2048, class_nums)
-```
-我的定义：
-```python
-        x = self.layer4(x)
-        x = self.avgpool1(x) #output:[4,2048,8,8]
-        x = x.view(x.size(0), -1) #output:[4,131072]
-        x = self.fc(x)
-```
-其中：
-```python
-        self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
-        self.avgpool1 = nn.AvgPool2d(3, stride=2)
-        self.fc = nn.Linear(2048, num_classes)
-```
-
-
-它也是只用了一层fc(2048,num_classes),和我第一次用的一样，那为啥它不会报mismatch的错误啊
+它也是只用了一层fc(2048,num_classes),和我第一次用的一样。<br/>
+打印了后两层的shape，发现问题出在最后一个卷积层的size设定上。标准的resnet有conv5层，最后一层是1x1，而论文代码里只有4层，且最后一层是8x8，所以最后Flatten之后的size就不一样了。。
 
 
 
