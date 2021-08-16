@@ -19,8 +19,11 @@ https://books.halfrost.com/leetcode/ChapterTwo/Linked_List/
 ### 目录：
 
 LEETCODE:
-- [2.AddTwoNumbers](#2-add-two-numbers)
-
+- [# Notebook for Algorithm Ploblems](#-notebook-for-algorithm-ploblems)
+  - [目录：](#目录)
+  - [2. Add Two Numbers](#2-add-two-numbers)
+  - [P1014 [NOIP1999 普及组] Cantor 表](#p1014-noip1999-普及组-cantor-表)
+  - [83. Remove Duplicates from Sorted List](#83-remove-duplicates-from-sorted-list)
 
 LUOGU:
 - [P1014.Cantor表](#p1014-noip1999-普及组-cantor-表)
@@ -29,7 +32,7 @@ LUOGU:
 ### 2. Add Two Numbers
 https://leetcode.com/problems/add-two-numbers/
 
-**[LEETCODE] [LinkedList]**
+**[LEETCODE] [Medium] [LinkedList] **
 
 date: 2021-8-14 0:27:00
 > description:
@@ -167,5 +170,58 @@ outloop:
 Comment:
 
 是入门难度的题，虽然还是做了挺久。。。题目本身似乎没有什么技巧，只要找到规律模拟就行了。虽然很简单，但是还是贴上来纪念一下，毕竟万事开头难，希望将来能够坚持下去，不要再放弃了。
+
+### 83. Remove Duplicates from Sorted List
+https://leetcode.com/problems/remove-duplicates-from-sorted-list/
+
+**[LEETCODE] [Medium] [LinkedList] **
+
+date: 2021-8-16 15:45:00
+
+Answer1:
+```cpp
+class Solution {
+public:
+    ListNode* deleteDuplicates(ListNode* head) {
+        int copy;
+        ListNode *prev, *clonehead, *clone;
+        clonehead = head; 
+        while(1){
+            if(!head){
+                break;//need debug
+            }
+            copy = head->val;//当前值
+            prev = head->next;//prev探路
+            if(!prev){
+                goto outloop;
+            }
+            if(copy == prev->val){
+                head->next = prev->next;
+                prev = prev->next;
+                if(!prev || !head){
+                        goto outloop;
+                        }
+                while(copy == prev->val){
+                    if(!prev || !head){
+                        goto outloop;
+                        }
+                    head->next = prev->next;
+                    prev = prev->next;
+                    if(!prev || !head){
+                        goto outloop;
+                        }
+                }
+            }
+            head = head->next;
+        }
+    outloop:
+    return clonehead;
+    }
+};
+```
+comment:
+
+很简单的链表题，判断一下改变链表的next绕过下一个重复的结点就行。这个代码写的很不整齐，即使这样也还是想记录一下嘿嘿。
+
 
 
