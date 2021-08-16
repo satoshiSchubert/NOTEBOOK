@@ -232,9 +232,26 @@ comment:
 
 这一题是83题(Remove Duplicates from Sorted List)的加强版本，相较于83题（碰到重复的子列只需保留一个，比如[1,2,3,3,4,4,5]->[1,2,3,4,5]）这一题要求完全删去重复的子列，得到[1,2,5]。这在碰到极端情况时（比如[1,1,1,1]->[]）就特别难处理，用83题的方法时就得考虑很多的if，尤其是表头也属于重复子列的情况。非常丢脸，这道题前后卡了起码两个小时。。。后来还是看了solution。<br/>
 Solution中也特意点出了[1，1，1，1]这种edge case，但是它用了一个极为巧妙的方法，就是设定一个 pseudo-head伪表头，值为0且链接指向input的链表的表头，这样就规避了输入样例中[1，1，1，1]这样棘手的情况，具体分析如下： <br/>
+sentinel意为哨兵，在这里是一个虚的表头，可以从代码看到它接在input的链表前面<br/>
+```cpp
+// sentinel Head, 即人为在链表前面添加一个value=0的头，以避免[1，1，1，1]这种edge case.
+ListNode *sentinel = new ListNode(0,head); //包含虚表头的完整链表
+```
+然后也创建了一个pred，代表重复子列前的最新一个结点。（在后面很巧妙的保证了它不会等于重复子列中的元素）
+```cpp    
+// Predecessor = the last node outside the sublist of duplicates
+ListNode *pred = sentinel;
+```
+在这个while循环中，尤其要注意当head从重复子列出来时，pred只是把它的next连接到head->next，pred结点本身是没有更新的，这样在碰到[1,2,2,4,4]的情况就不会出现pred=4的错误。甚至，由于只是pred->next而不是pred本身改变，在head遍历到NULL时将会自动pred->next = NULL，非常方便。
+```cpp
+    while(head != NULL && head->next && head->val == (head->next)->val){
+        head = head->next;
+    }
+    pred->next = head->next; //注意，这里只是给next赋值，pred本身并没有动，这样即使next是另外一列duplicate也没事
+    }
+```
+![](pics/leetcodeP82.png)
+早知道就早点看题解了，浪费了挺多时间的。。。做这些题主要还是熟练链表的操作，下次应该限时。
 
 
-
-
-![](https://github.com/satoshiSchubert/NOTEBOOK/blob/main/pics/leetcodeP82.png)
 
