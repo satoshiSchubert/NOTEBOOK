@@ -474,19 +474,36 @@ update：
 我估计问题出在原来代码的图片预处理部分里面的各种Crop操作。
 另外原来的网络最后的fc层也没有改好，最后导致训练的效果很差（训练效率还很低。。。）
 
-#### 12:45 8/15
-|Epoch|mAP|Time|
-| -- | -- | -- |
-| Epoch00 | 0.368 | 23:47 |
-| Epoch01 | 0.460 | 10:30 |
-| Epoch02 | 0.505 | 11:00 |
-| Epoch03 | 0.541 | 11:40 |
-| Epoch04 | ----- | ----- |
-| Epoch05 | 0.582 | 12:54 |
-| Epoch06 | 0.595 | 13:30 |
-| Epoch07 | 0.601 | 14:00 |
-| Epoch08 | 0.608 | 15:00 |
 
+但是非常疑惑，下面是正经的ResNet101结构，尤其是最后几层：
+```python
+        x = self.conv5(x)
+        x = self.avg_pool(x)
+        x = x.view(x.size(0), -1)
+        x = self.fc(x)
+```
+其中，
+```python
+        self.conv5 =self._make_layer(in_channel=1024, out_channel=512, block=blocks[3], downsampling=downsampling, stride=2)
+        self.avg_pool = AvgPool2d(kernel_size=7)
+        self.fc = Linear(2048, class_nums)
+```
+我的定义：
+```python
+        x = self.layer4(x)
+        x = self.avgpool1(x) #output:[4,2048,8,8]
+        x = x.view(x.size(0), -1) #output:[4,131072]
+        x = self.fc(x)
+```
+其中：
+```python
+        self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
+        self.avgpool1 = nn.AvgPool2d(3, stride=2)
+        self.fc = nn.Linear(2048, num_classes)
+```
+
+
+它也是只用了一层fc(2048,num_classes),和我第一次用的一样，那为啥它不会报mismatch的错误啊
 
 
 但是非常疑惑，下面是正经的ResNet101结构，尤其是最后几层：
@@ -518,5 +535,25 @@ update：
 
 
 它也是只用了一层fc(2048,num_classes),和我第一次用的一样，那为啥它不会报mismatch的错误啊
+
+
+
+#### 12:45 8/15
+|Epoch|mAP|Time|
+| -- | -- | -- |
+| Epoch00 | 0.368 | 23:47 |
+| Epoch01 | 0.460 | 10:30 |
+| Epoch02 | 0.505 | 11:00 |
+| Epoch03 | 0.541 | 11:40 |
+| Epoch04 | ----- | ----- |
+| Epoch05 | 0.582 | 12:54 |
+| Epoch06 | 0.595 | 13:30 |
+| Epoch07 | 0.601 | 14:00 |
+| Epoch08 | 0.608 | 15:00 |
+
+估计200个Epoch之后应该有0.7以上吧，但是新账号的gpu使用时限也到了，如果想看最后的结果可能需要借学长的服务器跑。
+
+另外，这次跑的代码里面图像预处理似乎没有加旋转平移等基本的图像增强手段，加了之后mAP应该还会提升不少。
+
 
 
