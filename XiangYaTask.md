@@ -12,3 +12,9 @@ FLAIR包含：
 T2FLAIR
 t2_fse_flair
 Turbo_dark_fluid
+
+## 接下来的改进点：
+- batchsize设成10，试一下能否一个病人一个病人地喂入
+- 试着使用新的img和mask的组合方式。channel=4的话是无法使用预训练模型的。可以用乘性的或者加性的
+- 是否要加入k折交叉验证？
+
