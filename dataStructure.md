@@ -418,6 +418,287 @@ struct GNode{
 
 ### 堆栈
 
-xxxxxxxx
+后入先出
+
+#### 栈的顺序存储实现
+通过一个一维数组来实现
+
+```cpp
+#define MaxSize <12>
+typedef struch SNode *Stack;
+struct SNode{
+    ElementType Data[MaxSize];
+    int Top;
+};
+```
+1. 入栈
+   ```cpp
+   void Push(Stack PtrS, ElemenType item)
+   {
+       if(PtrS->Top == MaxSize-1){
+           printf("Stack full");
+           return
+       }else{
+           PtrS->Data[++(PtrS->Top)] = item; // topp++
+           return;
+       }
+   }
+   ```
+2. 出栈
+   ```cpp
+   ElementType Pop(Stack PtrS)
+   {
+       if(Ptrs->Top == -1){
+           printf("stack empty");
+           return ERROR; //ERROR是ElementType的特殊值，标志错误！
+       }else{
+           return(PtrS->Data[(Ptrs->Top)--]);
+       }
+   }
+   ```
+#### 栈的链式存储实现
+注意：链表尾端无法作为栈顶，因为不能对尾端进行删除操作。
+```cpp
+typedef struct SNode *Stack;
+struct SNode{
+    ElementType Data;
+    struct SNode *Next;
+}
+```
+
+1. 构建一个空堆栈：
+   ```cpp
+    Stack CreateStack()
+    { //构建一个堆栈的头节点，返回指针
+        Stack S;
+        S = (Stack)malloc(sizeof(struct SNode)); //这里也可以用new(c++)
+        S = new SNode();
+        S->Next = NULL;
+        return S;
+    }
+
+    int IsEmpty(Stack S)
+    {
+        return (S->Next == NULL); //链式堆栈只能在链表头插入删除，因此如果后面是NULL则表示这个链表(堆栈)空了
+    } 
+    ```
+    Tips：malloc和new的区别：
+    - malloc/free是标准库函数，new/delete是C++运算符
+    - new/delete会调用构造、析构函数，malloc/free不会，所以他们无法满足动态对象的要求。
+    - new返回有类型的指针，malloc返回无类型的指针。malloc内存分配成功后返回void*，然后再强制类型转换为需要的类型；new操作符分配内存成功后返回与对象类型相匹配的指针类型；因此new是符合类型安全的操作符。
+    - malloc内存分配失败后返回NULL；new分配内存失败则会抛异常（bac_alloc）。
+    - reference: https://blog.csdn.net/qq_40840459/article/details/81268252
+
+
+2. 插入
+    ```cpp
+    bool Push( Stack S, ElementType X )
+    { /* 将元素X压入堆栈S */
+        PtrToSNode TmpCell;
+
+        TmpCell = (PtrToSNode)malloc(sizeof(struct SNode));
+        TmpCell->Data = X;
+        TmpCell->Next = S->Next;
+        S->Next = TmpCell;
+        return true;
+    }
+    ```
+3. 删除
+    ```cpp
+    ElementType Pop( Stack S )  
+    { /* 删除并返回堆栈S的栈顶元素 */
+        PtrToSNode FirstCell;
+        ElementType TopElem;
+
+        if( IsEmpty(S) ) {
+            printf("堆栈空"); 
+            return ERROR;
+        }
+        else {
+            FirstCell = S->Next; 
+            TopElem = FirstCell->Data;
+            S->Next = FirstCell->Next;
+            free(FirstCell);
+            return TopElem;
+        }
+    }
+    ```
+#### 表达式求值
+详见浙大数据结构ppt
+1. 中缀表达式利用堆栈转换为后缀表达式
+    - 运算数：直接输出；
+    - 左括号：压入堆栈；
+    - 右括号：将栈顶的运算符弹出并输出，直到遇到左括号（出栈，不输出）；
+    - 运算符：
+        - 若优先级大于栈顶运算符时，则把它压栈；
+        - 若优先级小于等于栈顶运算符时，将栈顶运算符弹出并输出；再比较新的栈顶运算符，直到该运算符大于栈顶运算符优先级为止，然后将该运算符压栈；
+    - 若各对象处理完毕，则把堆栈中存留的运算符一并输出。
+
+2. 利用堆栈求后缀表达式的值
+    - 字符序列的后缀表达式 -> 分割 -> 对象序列的后缀表达式 -> 利用堆栈求值
+    - 6 2 / 3 - 4 2 * + =  8:
+    - 6/2=3,3-3=0,4*2=8,0+8=8
+
+
+### 队列
+
+是一种具有操作约束的线性表。<br>
+只能在后端(rear)插入，前端(front)删除，因此是先进先出（FIFO）。
+| data(front) | data | data(rear) | -> |
+| --- | --- | --- | --- |
+
+定义：
+```cpp
+typedef int Position;
+struct QNode {
+    ElementType *Data;     /* 存储元素的数组 */
+    Position Front, Rear;  /* 队列的头、尾指针 */
+    int MaxSize;           /* 队列最大容量 */
+};
+typedef struct QNode *Queue;
+```
+
+#### 队列的顺序存储实现
+循环队列，善用取余操作
+```cpp
+Queue CreateQueue( int MaxSize )
+{
+    Queue Q = (Queue)malloc(sizeof(struct QNode));
+    Q->Data = (ElementType *)malloc(MaxSize * sizeof(ElementType));
+    Q->Front = Q->Rear = 0;
+    Q->MaxSize = MaxSize;
+    return Q;
+}
+
+bool IsFull( Queue Q )
+{
+    return ((Q->Rear+1)%(Q->MaxSize) == Q->Front);
+}
+
+bool AddQ( Queue Q, ElementType X )
+{
+    if ( IsFull(Q) ) {
+        printf("队列满");
+        return false;
+    }
+    else {
+        Q->Rear = (Q->Rear+1)%(Q->MaxSize); 
+        Q->Data[Q->Rear] = X;
+        return true;
+    }
+}
+
+bool IsEmpty( Queue Q )
+{
+    return (Q->Front == Q->Rear);
+}
+
+ElementType DeleteQ( Queue Q )
+{
+    if ( IsEmpty(Q) ) { 
+        printf("队列空");
+        return ERROR;
+    }
+    else  {
+        Q->Front =(Q->Front+1)%Q->MaxSize;
+        return  Q->Data[Q->Front];
+    }
+}
+```
+#### 队列的链式存储实现
+注意，front只能是链表头，rear只能是链表尾，因为只有链表头可以删除结点
+
+```cpp
+
+typedef struct Node *PtrToNode;
+struct Node { /* 队列中的结点 */
+    ElementType Data;
+    PtrToNode Next;
+};
+typedef PtrToNode Position;
+
+struct QNode {
+    Position Front, Rear;  /* 队列的头、尾指针 */
+    int MaxSize;           /* 队列最大容量 */
+};
+typedef struct QNode *Queue;
+
+bool IsEmpty( Queue Q )
+{
+    return ( Q->Front == NULL);
+}
+
+ElementType DeleteQ( Queue Q )
+{
+    Position FrontCell; 
+    ElementType FrontElem;
+    
+    if  ( IsEmpty(Q) ) {
+        printf("队列空");
+        return ERROR;
+    }
+    else {
+        FrontCell = Q->Front;
+        if ( Q->Front == Q->Rear ) /* 若队列只有一个元素 */
+            Q->Front = Q->Rear = NULL; /* 删除后队列置为空 */
+        else                     
+            Q->Front = Q->Front->Next;
+        FrontElem = FrontCell->Data;
+
+        free( FrontCell );  /* 释放被删除结点空间  */
+        return  FrontElem;
+    }
+}
+
+```
+### 多项式加法运算
+
+```cpp
+Polynomial PolyAdd (Polynomial P1, Polynomial P2)
+{
+    Polynomial front, rear, temp;
+    int sum;
+    rear = (Polynomial) malloc(sizeof(struct PolyNode)); 
+    front = rear; /* 由front 记录结果多项式链表头结点 */
+    while ( P1 && P2 ) /* 当两个多项式都有非零项待处理时 */
+        switch ( Compare(P1->expon, P2->expon) ) {
+        case 1: 
+            Attach( P1->coef, P1->expon, &rear);
+            P1 = P1->link;
+            break;
+        case -1: 
+            Attach(P2->coef, P2->expon, &rear); 
+            P2 = P2->link;
+            break;
+        case 0: 
+            sum = P1->coef + P2->coef;
+            if ( sum ) Attach(sum, P1->expon, &rear);
+            P1 = P1->link; 
+            P2 = P2->link;
+            break;
+        }
+    /* 将未处理完的另一个多项式的所有节点依次复制到结果多项式中去 */
+    for ( ; P1; P1 = P1->link ) Attach(P1->coef, P1->expon, &rear);
+    for ( ; P2; P2 = P2->link ) Attach(P2->coef, P2->expon, &rear);
+    rear->link = NULL; 
+    temp = front;
+    front = front->link; /*令front指向结果多项式第一个非零项 */
+    free(temp); /* 释放临时空表头结点 */
+    return front;
+```
+
+## 第三讲 树（上）
+###  树与树的表示
+
+
+
+
+
+
+
+
+
+
+
 
 
