@@ -57,4 +57,6 @@ https://www.luogu.com.cn/problem/P1014
 
 >   引用：操作系统的一些知识
 
+数学符号：
 
+https://blog.csdn.net/weixin_30994847/article/details/112216878
