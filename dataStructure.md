@@ -756,7 +756,159 @@ Polynomial PolyAdd (Polynomial P1, Polynomial P2)
 
 ### 二叉树及存储结构
 
+#### 几种特殊二叉树
+1. 斜二叉树(实际上就是链表)
+   ![](pics/3.2_1.png)
+2. 完美/满二叉树
+   ![](pics/3.2_2.png)
+3. **完全二叉树**
+   完全二叉树可以不是完美二叉树，可以缺结点，但是必须是按照一定规则（从上到下，从左到右）排序之后的尾端的连续结点序列。<br>
+   比如，下面这个是完全二叉树：<br>
+   ![](pics/3.2_3.png)
+   而下面这个不是：<br>
+   ![](pics/3.2_4.png)
+   完全二叉树是很重要的一种树。
 
+#### 二叉树的重要性质
+- 一个二叉树第i层的最大节点数为：2<sup>i-1</sup>, i $\geq$ 1
+- 深度为k的二叉树有最大节点总数为2<sup>k</sup>-1, k $\geq$ 1
+- 对任何非空二叉树T，若n<sub>0</sub>表示叶结点的个数,n<sub>2</sub>是度为2的非叶结点个数，那么两者满足关系n<sub>0</sub>=n<sub>2</sub>+1。
+
+#### 二叉树顺序存储结构
+对于完全二叉树（需按照上面的规则编号），可以用数组实现，而且非常方便：
+- 非根结点(序号i>1)的父结点的序号是int(i/2)（向下取整—）;
+- 结点(序号为i)的左孩子结点的序号是2i,(若2i<=n，否则没有左孩子) ;
+- 结点(序号为i )的右孩子结点的序号是2i+1,(若2i+1<=n， 否则没有右孩子);
+一般二叉树也可以这样处理，但是在没有值的位置需要把对应的位置空出来。这样会造成空间浪费
+
+#### 二叉树链式存储结构
+| Left | Data | Right |
+| -- | -- | -- |
+
+```cpp
+typedef struct TreeNode *BinTree;
+typedef BinTree Position;
+struct TreeNode{
+    ElementType Data;
+    BinTree Left;
+    BinTree Right;
+}
+```
+
+### 二叉树的遍历
+#### **二叉树的递归遍历**
+1. 先序遍历
+   ![](pics/3.3_1.png)
+   1. 访问根节点
+   2. 先序遍历其左子树
+   3. 先序遍历其右子树
+   ```cpp
+   void PreOrderTraversal(BinTree BT)
+   {
+       if(BT){
+           printf("%d", BT->Data);
+           PreOrderTraversal(BT->Left);
+           PreOrderTraversal(BT->Right);
+       }
+   }
+   ```
+
+2. 中序遍历
+   ![](pics/3.3_2.png)
+   1. 中序遍历其左子树
+   2. 访问根节点
+   3. 中序遍历其右子树
+   ```cpp
+   void InOrderTraversal(BinTree BT)
+   {
+       if(BT){
+           InOrderTraversal(BT->Left);
+           printf("%d", BT->Data);
+           InOrderTraversal(BT->Right);
+       }
+   }
+   ```
+3. 后序遍历
+   ![](pics/3.3_3.png)
+   1. 后序遍历其左子树
+   2. 后序遍历其右子树
+   3. 访问根节点
+   ```cpp
+   void PostOrderTraversal(BinTree BT)
+   {
+       if(BT){
+           PostOrderTraversal(BT->Left);
+           PostOrderTraversal(BT->Right);
+           printf("%d", BT->Data);
+       }
+   }
+   ```
+#### 层序遍历
+**二叉树遍历的核心问题：二维结构的线性化**
+![](pics/3.3_4.png)
+因此需要一个存储结构保存暂时不访问的结点（堆栈或者队列），否则扫描经过之后就无法访问了。
+
+队列实现:遍历从根结点开始，首先将根结点入队，然后开始执行循环:1.结点出队、2.访问该结点、3.其左右儿子入队.
+
+举例：对于下面的树：
+![](pics/3.3_5.png)<br>
+有：<br>
+| A    | out: <br>
+| B C  | out:A<br>
+| C D F | out:AB<br>
+| D F G I| out:ABC<br>
+| F G I E | out:ABCD<br>
+| G I E H | out:ABCDF<br>
+out: ABCDFGIEH<br>
+
+代码：
+```cpp
+void LevelOrderTraversal ( BinTree BT )
+{ Queue Q; BinTree T;
+    if ( !BT ) return; /* 若是空树则直接返回 */
+    Q = CreatQueue( MaxSize ); /*创建并初始化队列Q*/
+    AddQ( Q, BT );
+    while ( !IsEmptyQ( Q ) ) {
+        T = DeleteQ( Q );
+        printf(“%d\n”, T->Data); /*访问取出队列的结点*/
+        if ( T->Left ) AddQ( Q, T->Left );
+        if ( T->Right ) AddQ( Q, T->Right );
+    }
+}
+
+```
+#### 一些应用
+1. 输出二叉树中的叶子结点
+   只需要在二叉树遍历算法中增加检测结点的“左右子树是都否为空”即可。
+   ```cpp
+   void PreOrderPrintLeaves( BinTree BT )
+    {
+        if( BT ) {
+            if ( !BT-Left && !BT->Right )
+                printf(“%d”, BT->Data );
+            PreOrderPrintLeaves ( BT->Left );
+            PreOrderPrintLeaves ( BT->Right );
+        }
+    }
+   ```
+2. 求二叉树的高度
+   假设左子树高度为HL，右子树高度为HR，则<br>
+   Height=max(HL, HR)+1（根节点）
+   ```cpp
+   int PostOrderGetHeight( BinTree BT )
+    {   int HL, HR, MaxH;
+        if( BT ) {
+            HL = PostOrderGetHeight(BT->Left); /*求左子树的深度*/
+            HR = PostOrderGetHeight(BT->Right); /*求右子树的深度*/
+            MaxH = （HL > HR）? HL : HR; /*取左右子树较大的深度*/
+            return ( MaxH + 1 ); /*返回树的深度*/
+        }
+        else return 0; /* 空树深度为0 */
+    }
+   ```
+3. 通过中序遍历+前序/后序遍历，唯一确定一颗二叉树
+ 
+## 第四讲 树（中）
 
 
 
