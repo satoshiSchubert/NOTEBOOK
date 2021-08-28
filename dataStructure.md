@@ -907,8 +907,111 @@ void LevelOrderTraversal ( BinTree BT )
     }
    ```
 3. 通过中序遍历+前序/后序遍历，唯一确定一颗二叉树
- 
+
+#### 判断树的同构
+运用链表的思想，构造结构数组来表示下面的树：<br>
+![](pics/3.3_6.png)<br>
+```cpp
+// 来学习一下怎么构造结构数组吧！
+#define MaxTree 10
+#define ElementType char
+#define Tree int
+#define Null -1
+
+struct TreeNode
+{
+    ElementType Element;
+    Tree Left;
+    Tree Right;
+}T1[MaxTree], T2[MaxTree]
+```
+需要完成：1.读入两个二叉树；2.二叉树同构判别<br>
+输入样例：
+```
+### 输入样例:
+8
+A 1 2
+B 3 4
+C 5 -
+D - -
+E 6 -
+G 7 -
+F - -
+H - -
+8
+G - 4
+B 7 6
+F - -
+A 5 1
+H - -
+C 0 -
+D - -
+E 2 -
+```
+结构：
+```cpp
+int main()
+{
+    Tree R1, R2;
+    R1 = BuildTree(T1); // T1，T2就是上面的结构数组，返回的是根节点的index
+    R2 = BuildTree(T2);
+    if(Isomorphic(R1,R2)){
+        printf("Yes\n");
+    }else{
+        printf("No\n");
+    }
+    return 0;
+}
+
+Tree BuildTree( struct TreeNode T[] )
+{...
+    scanf("%d\n", &N);
+    if (N) {
+        for (i=0; i<N; i++) check[i] = 0;
+        for (i=0; i<N; i++) {
+            scanf("%c %c %c\n", &T[i].Element, &cl, &cr);
+            if (cl != '-') {
+                T[i].Left = cl-'0';
+                check[T[i].Left] = 1; //原理是，如果一个元素没有指向被指向，则它就是根结点
+            }
+            else T[i].Left = Null;
+            ... /*对cr的对应处理 */
+        }
+        for (i=0; i<N; i++)
+            if (!check[i]) break;
+        Root = i;
+    }
+    return Root;
+}
+
+int Isomorphic ( Tree R1, Tree R2 )
+{
+    if ( (R1==Null )&& (R2==Null) ) /* both empty */
+        return 1;
+    if ( ((R1==Null)&&(R2!=Null)) || ((R1!=Null)&&(R2==Null)) )
+        return 0; /* one of them is empty */
+    if ( T1[R1].Element != T2[R2].Element )
+        return 0; /* roots are different */
+    if ( ( T1[R1].Left == Null )&&( T2[R2].Left == Null ) )
+        /* both have no left subtree */
+        return Isomorphic( T1[R1].Right, T2[R2].Right );
+    if ( ((T1[R1].Left!=Null)&&(T2[R2].Left!=Null))&&
+        ((T1[T1[R1].Left].Element)==(T2[T2[R2].Left].Element)) )
+        /* no need to swap the left and the right */
+        return ( Isomorphic( T1[R1].Left, T2[R2].Left ) &&
+        Isomorphic( T1[R1].Right, T2[R2].Right ) );
+
+    else /* need to swap the left and the right */
+        return ( Isomorphic( T1[R1].Left, T2[R2].Right) &&
+        Isomorphic( T1[R1].Right, T2[R2].Left ) );
+}
+```
+
+
+
 ## 第四讲 树（中）
+
+### 二叉搜索树
 
 
 
