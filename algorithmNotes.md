@@ -11,6 +11,13 @@ categories:
 <a href="https://github.com/satoshiSchubert" target="_blank"><img src="https://img.shields.io/badge/Github-@SatoshiNg-f3e1e1.svg?style=flat-square&logo=GitHub"></a>
 <img src='https://img.shields.io/badge/style-Chinese-c45a65.svg?style=flat-square' />
 
+
+### Problems to be solve:
+- [225. Implement Stack using Queues](https://leetcode.com/problems/implement-stack-using-queues/)
+- [232. Implement Queue using Stacks](https://leetcode.com/problems/implement-queue-using-stacks/)
+- [1700. Number of Students Unable to Eat Lunch](https://leetcode.com/problems/number-of-students-unable-to-eat-lunch/)
+
+
 # Notebook for Algorithm Ploblems
 ---
 分类参考：
