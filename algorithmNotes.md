@@ -13,9 +13,7 @@ categories:
 
 
 ### Problems to be solve:
-- [225. Implement Stack using Queues](https://leetcode.com/problems/implement-stack-using-queues/)
-- [232. Implement Queue using Stacks](https://leetcode.com/problems/implement-queue-using-stacks/)
-- [1700. Number of Students Unable to Eat Lunch](https://leetcode.com/problems/number-of-students-unable-to-eat-lunch/)
+[341. Flatten Nested List Iterator](https://leetcode.com/problems/flatten-nested-list-iterator/)
 
 
 # Notebook for Algorithm Ploblems
@@ -88,7 +86,7 @@ public:
             }else{
                 s = cur1->val+carry;
             }
-            clone = new ListNode(s%10); //s对10取余的值生成一个新节点
+            clone = new ListNode(s%10); //s对10取余的值生成一个新结点
             if(s>=10){
                 carry = 1; //进位
             }else carry=0;
@@ -99,7 +97,7 @@ public:
                 prev = clone; //这里prev指向的是和cloneHead**同一个**new出来的结点，因此后面只需延伸prev即可！
             }else{
                 prev->next = clone; //上一步new出来的那个结点的next指向新new出来的结点，创造链接
-                prev = clone; //prev指向新节点
+                prev = clone; //prev指向新结点
             }
             if(cur1) cur1 = cur1->next;
             if(cur2) cur2 = cur2->next;
@@ -117,7 +115,7 @@ public:
 ```
 Comment:
 
-学完链表之后做（抄）的第一道题，虽然是Medium难度。抄完感觉对linked list的认识加深了，尤其是如何处理新增加节点和原节点之间的链接指向关系。
+学完链表之后做（抄）的第一道题，虽然是Medium难度。抄完感觉对linked list的认识加深了，尤其是如何处理新增加结点和原结点之间的链接指向关系。
 
 
 

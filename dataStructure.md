@@ -324,7 +324,7 @@ List PtrL;
 3. 插入
    ```cpp
    /*
-   1.先构造一个新节点，用s指向
+   1.先构造一个新结点，用s指向
    2.再找到第i-1个结点，用p指向
    3.s->Next = p->Next
    4.p->Next = s
@@ -333,7 +333,7 @@ List PtrL;
    {
        List p,s;
        if(i == 1){
-           //新节点若插在表头，要单独考虑
+           //新结点若插在表头，要单独考虑
            s = (List)malloc(sizeof(struct LNode));//先分配空间
            s->Data = X;
            s->Next = PtrL;//插在表头
@@ -407,7 +407,7 @@ struct GNode{
 
 #### 多重链表
 链表中的结点可能同时隶属于多个链。
-- 多重链表中节点的指针域会有多个，如上一例中包含了Next和SubList两个指针。
+- 多重链表中结点的指针域会有多个，如上一例中包含了Next和SubList两个指针。
 - 然而，包含两个指针域并不一定就是多重链表，比如双向链表。
 
 树结构，图结构可以用多重链表来实现存储。
@@ -469,7 +469,7 @@ struct SNode{
 1. 构建一个空堆栈：
    ```cpp
     Stack CreateStack()
-    { //构建一个堆栈的头节点，返回指针
+    { //构建一个堆栈的头结点，返回指针
         Stack S;
         S = (Stack)malloc(sizeof(struct SNode)); //这里也可以用new(c++)
         S = new SNode();
@@ -677,7 +677,7 @@ Polynomial PolyAdd (Polynomial P1, Polynomial P2)
             P2 = P2->link;
             break;
         }
-    /* 将未处理完的另一个多项式的所有节点依次复制到结果多项式中去 */
+    /* 将未处理完的另一个多项式的所有结点依次复制到结果多项式中去 */
     for ( ; P1; P1 = P1->link ) Attach(P1->coef, P1->expon, &rear);
     for ( ; P2; P2 = P2->link ) Attach(P2->coef, P2->expon, &rear);
     rear->link = NULL; 
@@ -747,7 +747,7 @@ Polynomial PolyAdd (Polynomial P1, Polynomial P2)
 树难以用数组表示，也不太好用链表表示(每个Node结构不同，因为next指针域的数量不同)
 
 可以使用儿子-兄弟表示法：
-这样每一个链表节点的构造都是相同的。<br>
+这样每一个链表结点的构造都是相同的。<br>
 这种树结构称为二叉树。
 
 ![](pics/child_sibling_1.png)
@@ -770,8 +770,8 @@ Polynomial PolyAdd (Polynomial P1, Polynomial P2)
    完全二叉树是很重要的一种树。
 
 #### 二叉树的重要性质
-- 一个二叉树第i层的最大节点数为：2<sup>i-1</sup>, i $\geq$ 1
-- 深度为k的二叉树有最大节点总数为2<sup>k</sup>-1, k $\geq$ 1
+- 一个二叉树第i层的最大结点数为：2<sup>i-1</sup>, i $\geq$ 1
+- 深度为k的二叉树有最大结点总数为2<sup>k</sup>-1, k $\geq$ 1
 - 对任何非空二叉树T，若n<sub>0</sub>表示叶结点的个数,n<sub>2</sub>是度为2的非叶结点个数，那么两者满足关系n<sub>0</sub>=n<sub>2</sub>+1。
 
 #### 二叉树顺序存储结构
@@ -799,7 +799,7 @@ struct TreeNode{
 #### **二叉树的递归遍历**
 1. 先序遍历
    ![](pics/3.3_1.png)
-   1. 访问根节点
+   1. 访问根结点
    2. 先序遍历其左子树
    3. 先序遍历其右子树
    ```cpp
@@ -816,7 +816,7 @@ struct TreeNode{
 2. 中序遍历
    ![](pics/3.3_2.png)
    1. 中序遍历其左子树
-   2. 访问根节点
+   2. 访问根结点
    3. 中序遍历其右子树
    ```cpp
    void InOrderTraversal(BinTree BT)
@@ -832,7 +832,7 @@ struct TreeNode{
    ![](pics/3.3_3.png)
    1. 后序遍历其左子树
    2. 后序遍历其右子树
-   3. 访问根节点
+   3. 访问根结点
    ```cpp
    void PostOrderTraversal(BinTree BT)
    {
@@ -893,7 +893,7 @@ void LevelOrderTraversal ( BinTree BT )
    ```
 2. 求二叉树的高度
    假设左子树高度为HL，右子树高度为HR，则<br>
-   Height=max(HL, HR)+1（根节点）
+   Height=max(HL, HR)+1（根结点）
    ```cpp
    int PostOrderGetHeight( BinTree BT )
     {   int HL, HR, MaxH;
@@ -953,7 +953,7 @@ E 2 -
 int main()
 {
     Tree R1, R2;
-    R1 = BuildTree(T1); // T1，T2就是上面的结构数组，返回的是根节点的index
+    R1 = BuildTree(T1); // T1，T2就是上面的结构数组，返回的是根结点的index
     R2 = BuildTree(T2);
     if(Isomorphic(R1,R2)){
         printf("Yes\n");
@@ -1011,7 +1011,255 @@ int Isomorphic ( Tree R1, Tree R2 )
 
 ## 第四讲 树（中）
 
-### 二叉搜索树
+### 二叉搜索树(BST, Binary Search Tree)
+**也成为二叉排序树和二叉查找树**
+
+满足以下性质：
+1. 非空左子树的所有键值小于其根结点的键值 （运用二分查找的思想，需要先排序）
+2. 非空右子树的所有键值大于于其根结点的键值
+3. 左、右子树都是二叉搜索树
+
+![](pics/4.1_1.png)
+
+#### 查找操作：Find
+- 查找从根结点开始，如果树为空，返回NULL
+- 若搜索树非空，则根结点关键字和X进行比较，并进行不同处理:
+  - 若X小于根结点键值，只需在左子树中继续搜索;
+  - 如果X大于根结点的键值，在右子树中进行继续搜索;
+  - 若两者比较结果是相等，搜索完成，返回指向此结点的指针。
+  ```cpp
+  1.使用尾递归的方法：
+  Position Find(ElementType X, BinTree BST)
+  {
+      if(!BST) return NULL; //failure
+      if(X>BST->Data){
+          return Find(X, BST->Right); //在右子树中继续查找
+      }else if(X<BST->Data){
+          return Find(X, BST->Left);
+      }else //X == Bst->Data{
+          return BST; //查找成功，返回找到的结点的位置
+      }
+  }
+
+  2.使用迭代循环的方法（推荐）：
+  Position IterFind(ElementType X, BinTree BST)
+  {
+      while(BST){
+          if(X>BST->Data){
+              BST = BST->Right; //向右移动
+          }else if(X<BST->Data){
+              BST = BST->Left; //向左移动
+          }else{
+              return BST；
+          }
+      }return NULL;
+  }
+  ```
+  - 若树往一边倒，比如全都只有左儿子，或者都只有右儿子，那算法效率就很低，达不到二分的log2n。因此需要平衡二叉树
+
+#### 查找最值操作：FindMin，FindMax2
+FindMin:最小值肯定在最左边
+```cpp
+Position FindMin(BinTree BST)
+{
+    // 递归方法
+    if(!BST)
+        return NULL;
+    else if(!BST->Left)
+        return BST; //找到最左边结点并返回
+    else
+        return FindMin(BST->Left);
+}
+```
+FindMin:最大值肯定在最右边
+```cpp
+Position FindMax(BinTree BST)
+{
+    // 迭代方法
+    if(BST){
+        while(BST->Right){
+            BST = BST->Right;
+        }
+    }return BST;
+}
+```
+#### 插入操作
+找到一个数的排序位置，并将其作为叶结点插入
+```cpp
+BinTree Insert(ElementType X, BinTree BST)
+{
+    if(!BST){
+        // 若原树为空，则生成并返回一个结点的二叉搜索树
+        BST = malloc(sizeof(struct TreeNode))
+        BST->Data = X;
+        BST->Left = BST->Right = NULL;
+    }else{ //开始找插入的位置
+        if(X<BST->Data)
+            BST->Left = Insert(X, BST->Left);
+        else if(X>BST->Data)
+            BST->Right = Insert(X,BST->Right);
+    }return BST;
+}
+```
+#### 删除操作
+三种情况：
+1. 要删除的是叶结点：直接删除，再修改其父结点指针为NULL
+2. 要删除的结点**只有一个孩子结点**：将其父结点的指针指向要删除结点的孩子结点即可，也就是直接把删除结点的子结点挂在删除结点的父结点的对应位置
+3. 要删除的结点有左、右、两棵子树：用另一结点替代被删除结点--右子树的最小元素，或者左子树的最大元素（因为左子树的最大值和右子树的最小值一定不会有两个儿子，这样只需参照1和2修改即可）
+
+```cpp
+BinTree Delete( BinTree BST, ElementType X ) 
+{ 
+    Position Tmp; 
+
+    if( !BST ) 
+        printf("要删除的元素未找到"); 
+    else {
+        if( X < BST->Data ) 
+            BST->Left = Delete( BST->Left, X );   /* 从左子树递归删除 */
+        else if( X > BST->Data ) 
+            BST->Right = Delete( BST->Right, X ); /* 从右子树递归删除 */
+        else { /* BST就是要删除的结点 */
+            /* 如果被删除结点有左右两个子结点 */ 
+            if( BST->Left && BST->Right ) {
+                /* 从右子树中找最小的元素填充删除结点，也可以左子树找最大元素 */
+                Tmp = FindMin( BST->Right );
+                BST->Data = Tmp->Data; //用右子树中最小元素替换被删除结点
+                /* 从右子树中删除最小元素 */
+                BST->Right = Delete( BST->Right, BST->Data );
+            }
+            else { /* 被删除结点有一个或无子结点 */
+                Tmp = BST; 
+                if( !BST->Left )       /* 只有右孩子或无子结点 */
+                    BST = BST->Right;  //把当前结点的下一个结点桥接上来，等于删除当前结点 
+                else                   /* 只有左孩子 */
+                    BST = BST->Left;
+                free( Tmp );
+            }
+        }
+    }
+    return BST;
+}
+```
+
+### 平衡二叉树
+搜索树结点不同的插入次序，将导致不同的**深度**和**平均查找长度**ASL
+
+平衡因子（BF）：左子树和右子树的高度差<br>
+BF(T) = h<sub>L</sub> - h<sub>R</sub>
+
+平衡二叉树(Balanced Binary Tree), 或AVL树（AVL是提出的科学家的名字缩写）：<br>
+- 空树，或者;
+- **任 一 结 点**左、右子树的高度差绝对值不超过1，即|BF(T)| $\leq$  1<br>
+  ![](pics/4.2_1.png)
+- 给定结点数为n的AVL树的最大高度为O(log<sub>2</sub>n)
+  
+#### 平衡二叉树的调整
+
+分为四种情况
+1. RR插入，RR旋转
+   ![](pics/4.2_2.png)
+2. LL插入，LL选择
+   ![](pics/4.2_3.png)
+3. LR插入，LR选择
+   ![](pics/4.2_4.png)
+4. RL插入，RL旋转
+   ![](pics/4.2_5.png)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
