@@ -259,4 +259,109 @@ ListNode *pred = sentinel;
 早知道就早点看题解了，浪费了挺多时间的。。。做这些题主要还是熟练链表的操作，下次应该限时。
 
 
+### 341. Flatten Nested List Iterator
+https://leetcode.com/problems/flatten-nested-list-iterator/
+
+**[LEETCODE] [Medium] [stack] [queue]**
+
+date: 2021-8-31 10:43:00
+
+>Description:
+>
+>You are given a nested list of integers nestedList. Each element is either an integer or a list whose elements may also be integers or other lists. Implement an iterator to flatten it.
+>Implement the NestedIterator class:
+>NestedIterator(List< NestedInteger > nestedList) Initializes the iterator with the nested list nestedList.
+>int next() Returns the next integer in the nested list.
+>boolean hasNext() Returns true if there are still some integers in the nested list and false otherwise.
+
+Example:
+```cpp
+Input: nestedList = [[1,1],2,[1,1]]
+Output: [1,1,2,1,1]
+Explanation: By calling next repeatedly until hasNext returns false, the order of elements returned by next should be: [1,1,2,1,1].
+```
+
+Answer:
+```cpp
+/**
+ * // This is the interface that allows for creating nested lists.
+ * // You should not implement it, or speculate about its implementation
+ * class NestedInteger {
+ *   public:
+ *     // Return true if this NestedInteger holds a single integer, rather than a nested list.
+ *     bool isInteger() const;
+ *
+ *     // Return the single integer that this NestedInteger holds, if it holds a single integer
+ *     // The result is undefined if this NestedInteger holds a nested list
+ *     int getInteger() const;
+ *
+ *     // Return the nested list that this NestedInteger holds, if it holds a nested list
+ *     // The result is undefined if this NestedInteger holds a single integer
+ *     const vector<NestedInteger> &getList() const;
+ * };
+ */
+
+// **这个回答运用了由指针构成的栈** 
+class NestedIterator {
+private:
+    // 这里stack的类型背后要加上 iterator，可能是要强调vector是可迭代的数据类型，否则下面begins和ends没法用 .push() 等操作
+    stack<vector<NestedInteger>::iterator> begins, ends; 
+public:
+    NestedIterator(vector<NestedInteger> &nestedList) {
+        begins.push(nestedList.begin()); // 注意，这里的begin和end是一个指针，指向nestedList的起始位置
+        ends.push(nestedList.end()); // 这个指针指向终止位置+1！
+    }
+    
+    int next() {
+        hasNext(); //如果hasNext = True，那么这一句不会造成什么影响。
+        return (begins.top()++)->getInteger(); //这里的顺序是先begins.top()->getInterger返回值,再begins.top()+=1
+    }
+    
+    bool hasNext() {
+        while(begins.size()){
+            if(begins.top()==ends.top()){ //这里若一层的list循环完了（begin和end位置相等），则脱去当前这一层list嵌套。下面会有进一步解释
+                begins.pop();
+                ends.pop();
+            }else{
+                auto x = begins.top(); //这里的auto会根据元素自动为其定义类型
+                if(x->isInteger())
+                    return true; //脱出该while循环
+                
+                begins.top()++; //这里的top实际上是一个指针(位置信息)，因此这里是指向的位置+=1
+                begins.push(x->getList().begin()); //若指向的是嵌套list，则把这个嵌套list再加载到stack中进行处理
+                ends.push(x->getList().end());
+            }
+        }
+        return false;
+    }
+};
+
+/**
+ * Your NestedIterator object will be instantiated and called as such:
+ * NestedIterator i(nestedList);
+ * while (i.hasNext()) cout << i.next();
+ */
+```
+comment:<br>
+这种需要自己构造一个类的题目是第一次碰到，而且他是完全建立在抽象的数据结构之上的，因此第一次着实有点摸不着头脑了。不过看了这个题解之后发现实际上就是根据给定的上一层的抽象数据结构的说明，构造更高一层的、调用前一层的数据类型的一个新数据类型。
+
+举例子来说明这个代码的主要流程：
+
+![](pics/leetcode341.png)
+
+只能说，脑子还不够灵光，想不到这么抽象的层面啊！
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
