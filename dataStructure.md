@@ -1166,12 +1166,138 @@ BF(T) = h<sub>L</sub> - h<sub>R</sub>
 4. RL插入，RL旋转
    ![](pics/4.2_5.png)
 
+#### 如何判断是同一颗二叉搜索树
 
+给定一个插入序列就可以唯一确定一棵二叉搜索树，但反之则不然。<br>
+尝试根据输入的队列来确定是否能生成一样的二叉搜索树
 
+1. 搜索树的表示
+   ```cpp
+   typedef struct TreeNode *Tree;
+   struct TreeNode{
+       int v;
+       Tree Left, Right;
+       int flag; // 用来记录结点是否有被遍历到
+   }
+   ```
+2. 程序主要框架：
+   1. 读入N和L
+   2. 根据第一个序列建树T
+   3. 判别之后的L个序列是否能形成和T一样的树，并返回结果<br>
+   构建部分：
+   ```cpp
+   int main()
+   {
+       int N,L,i;
+       Tree T;
 
+       scanf("%d", &N);
+       while(N){
+           scanf("%d",&L);
+           T = MakeTree(N);
+           for (i=0;i<L;i++){
+               if(Judge(T,N)) printf("Yes\n");
+               else printf("No\n");
+               ResetT(T);
+           }
+           FreeTree(T);
+           scanf("%d",&N);
+       }
+       return 0;
+   }
 
+   Tree MakeTree(int N)
+   {
+       Tree T;
+       int i, V;
 
+       scanf("%d",&V);
+       T = NewNode(V);
+       for(i=1;i<N;i++>){
+           scanf("%d",&V);
+           T = Insert(T,V);
+       }
+       return T;
+   }
 
+   Tree NewNode(int V)
+   {
+       Tree T = (Tree)malloc(sizeof(struct TreeNode));
+       T->v = T;
+       T->Left = T->Right = NULL;
+       T->frag = 0;
+       return T;
+   }
+
+   Tree Insert(Tree T, int V)
+   {
+       if(!T)
+            T = NewNode(V);
+       else{
+           if(V>T->v)
+                T->Right = Insert(T->Right, V);
+           else
+                T->Left = Insert(T->Left, V);
+        }
+        return T;
+   }
+   ```
+3. **判别方法**
+   - 在构建好的树T中按顺序搜索序列3 2 4 1中的每一个数：
+   - **如果每次搜索所经过的结点在前面均出现过**，则一致；
+   - 否则（某次搜索中遇到未经过，即flag=0的结点），则不一致
+    ```cpp
+    int check(Tree T, int V) // 单个元素的判别
+    {
+        if(T->flag){ // 目前遍历到的结点是之前有标记的，继续迭代
+            if(V < T->v){
+                return check(T->Left, V);
+            }else if(V > T->v){
+                return check(T->Right, V);
+            }else
+            return 0;
+        }else{ 
+            if(V == T->v){ // 碰到了新结点，康康值是否相等呢？
+                T->flag = 1; // 是正确的结点，把他标记一下就return
+                return 1;
+            }
+            else return 0; // 碰到了未经过的结点，判断出来不是同一棵树
+        }
+    }
+
+    int Judge(Tree, int N) // 循环调用check来判断整个序列
+    {
+        int i, V, flag = 0; // flag=1:代表(可能序列还没检查完就已经)碰到不一致了
+        scanf("%d", &V);
+        if( V!=T->v) flag=1; // 根节点就不同了
+        else T->flag = 1 // 注意区分flag和T的flag！
+        for(i=1;i<N;i++）{
+            scanf("%d", &V);
+            if((!flag)&&(!check(T,V))) flag=1; // 如果check返回0，则flag=1
+        }
+        if( flag ) return 0;
+        else return 1;
+    }
+
+    void ResetT(Tree T)
+    {
+        if (T->Left) Reset(T->Left);
+        if (T->Right) Reset(T->Right);
+        T->falg = 0;
+    }
+
+    void FreeTree(Tree T)
+    {
+        if(T->Left) FreeTree(T->Left);
+        if(T->Right) FreeTree(T->Right;
+        free(T))
+    }
+    ```
+
+## 第五讲 树（下）
+
+### 堆
+#### 什么是堆
 
 
 
