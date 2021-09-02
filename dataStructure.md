@@ -1419,48 +1419,284 @@ BF(T) = h<sub>L</sub> - h<sub>R</sub>
   - “最小堆（MinHeap）”也成为“小顶堆”
 
 堆的有序性在于它从上到下的任何一条路径都是单调的。
+
 ![](pics/5.1_1.png)
 
+#### 最大堆的实现
+1. 最大堆的定义
+```cpp
+typedef struct HeapStruct *MaxHeap;
+struct HeadStruct{
+    ElementType *Elements;
+    int Size;
+    int Capacity;
+};
+
+MaxHeap Create (int MaxSize)
+{
+    MaxHeap H = malloc(sizeof(struct HeapStruct));
+    H->Elements = malloc((MaxSize+1) * sizeof(ElementType)); //这里+1是因为下标为0处并不用来存放数据
+    H->Size = 0;
+    H->Capacity = MaxSize;
+    H->Elements[0] = MaxData; // 定义‘哨兵’为大于堆中所有可能元素的值，便于以后更快操作。
+    return H;
+}
+```
+2. 最大堆的插入
+
+假设需要在[6]的位置上插入一个新节点，根据最大堆的性质进行判断：若该结点值比它的上一个结点大，则他们需要交换，在这里58>31，交换一次；58>44，再交换一次，最后新插入的58被交换到了[1]的位置。
+
+![](pics/5.1_2.png)
+```cpp
+void Insert(MaxHeap H, ElementType item)
+{   // O(logN)
+    int i;
+    if(IsFull(H)){
+        printf("Heap is Full");
+        return;
+    }
+    i = ++ H->Size; // i指向插入后堆中最后一个元素的位置
+    for(; H->Elements[i/2]<item ; i/=2 ){
+        H -> Elements[i] = H -> Elements[i/2]; //路径上碰到更小的元素将其逐个下移一位（如果item更大的话）
+    }
+    H -> Elements[i] = item; // item 插入移位后上面空出来的位置
+    /*
+    注意，如果比到树的第一个元素
+    （比如说：将25 插入 1000[0,哨兵]->20[1]->15[2]->12[3]->2[4] 这棵树,)
+    在0位置设定一个很大的数作为正式数据之外的哨兵，保证其比插入的元素大，这样可以保证插入的这个25不会越界，巧妙地规避edge case。
+    */
+}
+```
+3. 最大堆的删除
+
+![](pics/5.1_3.png)
+
+假设要删除58(最大值，在根的位置)：
+- 先把31移动到根的位置
+- 然后找到31 的较大的孩子，交换位置
+- 然后再往下迭代，交换位置
+
+![](pics/5.1_4.png)
+
+```cpp
+ElementType DeleteMax(MaxHeap H)
+{
+    //从最大堆H中取出键值最大的元素，并删除一个结点
+    int Parent, Child;
+    ElementType MaxIten, temp;
+    if (IsEmpty(H)){
+        print("MaxHeap is empty");
+        return;
+    }
+    MaxItem = H->ELements[1]; // 取出根节点最大值
+    // 然后，用最大堆中的最后一个元素从根节点开始向上过滤下层结点，也就是逐个比较，移位。
+    temp = H->Elements[H->Size--] // 取出H的最后一个元素（要删除的），暂时储存，再让Size-1
+    for(Parent=1; Parent*2 <= H->Size; Parent = Child){
+        Child = Parent*2; //子节点位置,注意，父节点的两个子节点:i*2 and i*2+1
+        if( (Child != H->Size) && (H->Element[Child] < H->Elements[Child+1]) ){
+            Child +=1; //指向两个孩子中的较大者
+        }
+        if(temp >= H->Elements[Child]) break; // 移位完成
+        else{
+            H -> Elements[Parents] = H->Elements[Child] //更大的子节点上移
+        }
+    }
+    H -> Elements[Parent] = temp;
+    return MaxItem;
+}
+```
+1. 最大堆的建立
+
+建立最大堆是指将**给定的N个元素**按照最大堆的要求存放在一个一维数组中。
+
+- 方法一：通过插入操作一个一个插入到初始为空的堆中去 -- O(nlongn)
+- 方法二：在线性时间复杂度下建立最大堆：
+  - 先将N个元素按顺序存入，先满足完全二叉树的结构特性
+  - 再调节各节点的位置，以满足最大堆的有序特性
+  
+方法二的具体逻辑：<br>
+在堆删除中，根节点的底下是两个最大堆，以此类推，往下每个结点的两边都是最大堆<br>
+如果将其反过来，从最底层起，不断往上迭代地构筑最大堆，到根节点就是一个完整的最大堆了。
+
+### 哈夫曼树与哈夫曼编码 Huffman
+
+根据数据出现的频率来建立更具效率的匹配<br>
+比如将100分制转化为5分制，可以score<60 ==grade 1; 60<=score<70 ==grade 2,以此类推，这样会形成如下一颗判定树：
+
+![](pics/5.2_1.png)
+
+可以通过不同的方法构造搜索树，但不同搜索树的搜索效率又是不一样的（比如把频率最大的元素放在根节点）
+
+#### 哈夫曼树的定义
+
+**带权路径长度(WPL)**：设二叉树有n个叶子结点，每个叶子结点带有权值W<sub>k</sub>,从根结点到每个叶子结点的长度为l<sub>k</sub>，则每个叶子结点的带权路径长度之和就是:
+$$
+\Sigma_{k=1}^{n} w_kl_k
+$$
+
+**最优二叉树/哈夫曼树**：WPL最小的二叉树
+
+例如下面的二叉树：
+![](pics/5.2_2.png)
+
+WPL = 5x1+4x2+3x3+2x4+1x4 = 34
+
+而下面这棵树：
+![](pics/5.2_3.png)
+
+WPL = 1x3+2x3+3x2+4x2+5x2 = 33
+
+#### 如何构造哈夫曼树
+
+每次把**权值最小的两棵树合并**即可。（可以利用最小堆）
+![](pics/5.2_4.png)
+
+```cpp
+typedef struct TreeNode *HuffmanTree;
+struct TreeNode{
+    int Weight;
+    HuffmanTree Left, Right;
+}
+
+HuffmanTree Huffman(MinHeap H)
+{
+    O(NlogN)
+    int i; HuffmanTree T;
+    BuildMinHeap(H); //将 H->Element[]按权值调整为最小堆
+    for(i = 1; i; i< H->Size; i++){ //做H.Size - 1次的合并
+        T = malloc(sizeof(struct TreeNode));
+        T->Left = DeletMin(H); // 从最小堆中删除一个结点，作为新T的左子节点
+        T->Right = DeletMin(H); // 从最小堆中删除一个结点，作为新T的右子节点
+        T->Weight = T->Left->Weight+T->Right->Weight;
+
+        Insert(H,T);
+    }
+    T = DeletMin(H);
+    return T; //返回的是合并之后的树根
+}
+```
+
+#### 哈夫曼树的特点
+- **没有度为1的结点**
+- n个叶子节点的哈夫曼树共有2n-1个结点
+- 哈夫曼树的任意**非叶节点的左右子树交换后仍是哈夫曼树**;
+- 对同一组权值{W<sub>1</sub>,.....,w<sub>n</sub>},存在不同构的两棵哈夫曼树
+
+#### 哈夫曼编码
+
+给定一段字符串，如何对字符进行编码，可以使得该字符串的编码存储空间最少?<br>
+进行不等长编码，并避免其二义性。
+
+前缀码(prefixcode):任何字符的编码都不是另一字符编码的前缀
+- 可以无二义地解码
+
+通过二叉树进行编码：
+下图是两种二叉树的编码方式，第一种四个元素分别对应00，01，10，11，由于每个元素不是另外一个元素的前缀，因此没有二义性。但是第二个编码方式出现了某个元素在其他元素前面的情况，这就会产生二义性。<br>
+因此，需要产生一棵二叉树，使得每个元素都在叶节点上，保证其不会出现前缀的情况。<br>
+
+![](pics/5.2_5.png)
+
+生成一棵正常的二叉树之后，如果要让编码效率最高，实际上就等同于生成一颗哈夫曼树，而每条路径就代表它的编码。
+
+![](pics/5.2_6.png)
+
+![](pics/5.2_7.png)
 
 
+#### 如何构造一个哈夫曼编码树
+
+比如，要根据如下的字母和出现频数来构造一个最优的哈夫曼编码：
+| a | e | i | s | t | sp | nl |
+| - | - | - | - | - | - | - |
+| 10|15 |12 |3 |4 |13 |1|
+
+过程：不断找最小的来合并结点即可。
+
+![](pics/5.2_8.png)
+![](pics/5.2_9.png)
+![](pics/5.2_10.png)
+![](pics/5.2_11.png)
+![](pics/5.2_12.png)
+
+最后得到：
+
+![](pics/5.2_13.png)
+
+### 集合及运算，**并查集**
+并查集运用：File Transfer<br>
+https://www.icourse163.org/learn/ZJU-93001?tid=1464647442#/learn/content?type=detail&id=1243232243&cid=1266529407&replay=true
 
 
+#### 集合的表示
+
+- 集合运算：交、并、补、差，判定一个元素是否属于某一集合
+- 并查集：集合并、查某元素属于什么集合
+- 并查集问题中集合存储如何实现？
+
+可以通过**树**来表示，树的每个结点代表一个集合元素
 
 
+假设有三个整数集合：<br>
+S1={1,2,4,7}<br>
+S2={3,5,8}<br>
+S3={6,9,10}<br>
+他们可以表示成：
+![](pics/5.3.1.png)
 
+这样一棵树，可以使用链表存储，但是使用数组存储更好。<br>
+假设每个元素的类型描述为：
+```cpp
+typedef struct{
+    ElementType Data;
+    int Parent;
+}SetType;
+```
+![](pics/5.3.2.png)
 
+如果没有父节点，则parent为-1，否则指向其父节点的下标
 
+|index|Data|Parent|
+|-|-|-|
+|0|1|-1|
+|1|2|0|
+|2|3|-1|
+|3|4|0|
+|4|5|2|
+|5|6|-1|
+|6|7|0|
+|7|8|2|
+|8|9|5|
+|9|10|5|
 
+#### 集合运算
+1. 查找某个元素所在的集合(用根节点表示)
+   ```cpp
+   int Find(SetType S[], ElementType X)
+   {
+       //在数组S中查找值为X的元素所属的集合
+       //MaxSize是全局变量，为S的最大长度
+       int i;
+       for(i=0;i<MaxSize&&S[i].Data != X; i++>); //空转，直到找到X
+       if(i>=NaxSize) return -1; //未找到，返回-1
+       for( ;S[i].Parent>=0;i=S[i].Parent); //不断向上，直到找到根节点
+       return i; //返回根节点在数组中的下标
 
+   }
+   ```
+2. 集合的并操作
+   分别找到X1和X2两个元素所在集合树的根节点，如果他们不同根，则将其中一个根节点的父节点指针设置成另一个根节点的数组下标
+   ```cpp
+   void Union(SetType S[], ElementType X1, ElementType X2)
+   {
+       int Root1, Root2;
+       Root1 = Find(S, X1);
+       Root2 = Find(S, X2);
+       if(Root1 != Root2)   S[Root2].Parent = Root1;
+   }
+   ```
+   为了改善合并以后的查找性能(防止树过高)，可使每一次合并都小的集合合并到大的集合中。但是要怎么表示每个集合中元素的个数（大小）呢？可以把根节点原来的Parent(-1)改成（负号+这个集合中元素的个数）
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+   ![](pics/5.3.4.png)
 
 
 

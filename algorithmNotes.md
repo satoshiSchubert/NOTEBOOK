@@ -13,7 +13,7 @@ categories:
 
 
 ### Problems to be solve:
-[341. Flatten Nested List Iterator](https://leetcode.com/problems/flatten-nested-list-iterator/)
+[并查集，洛谷P1551](https://zhuanlan.zhihu.com/p/93647900/)
 
 
 # Notebook for Algorithm Ploblems

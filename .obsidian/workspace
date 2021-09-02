@@ -10,7 +10,7 @@
           "type": "markdown",
           "state": {
             "file": "dataStructure.md",
-            "mode": "source"
+            "mode": "preview"
           }
         }
       }
@@ -89,8 +89,8 @@
   "active": "c2a615abdcc48d3b",
   "lastOpenFiles": [
     "dataStructure.md",
-    "MdTemplate.md",
     "deep_into_operating_system_tsinghua.md",
-    "algorithmNotes.md"
+    "algorithmNotes.md",
+    "MdTemplate.md"
   ]
 }
