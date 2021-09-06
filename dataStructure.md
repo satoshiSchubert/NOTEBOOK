@@ -125,9 +125,8 @@ void SelectionSort(int List[],int N)
 
 #### 最大子列和
 如下：
-$$
-f(i,j) = max(0,\Sigma_{k=i}^jA_k)
-$$
+$$f(i,j) = max(0,\Sigma_{k=i}^jA_k)$$
+
 对于O(n<sup>2</sup>)的算法，应考虑是否能化成O(nlogn)
 
 **分治法**，分而治之
@@ -1530,9 +1529,8 @@ ElementType DeleteMax(MaxHeap H)
 #### 哈夫曼树的定义
 
 **带权路径长度(WPL)**：设二叉树有n个叶子结点，每个叶子结点带有权值W<sub>k</sub>,从根结点到每个叶子结点的长度为l<sub>k</sub>，则每个叶子结点的带权路径长度之和就是:
-$$
-\Sigma_{k=1}^{n} w_kl_k
-$$
+
+$$\Sigma_{k=1}^{n} w_kl_k$$
 
 **最优二叉树/哈夫曼树**：WPL最小的二叉树
 
@@ -1711,9 +1709,7 @@ typedef struct{
 
 #### 怎样表示一个图
 1. 可以用邻接矩阵 G[N][N]，其中：
-   $$
-   G[i][j]= \begin{cases}1 & \text { 若< } v_{i}, v_{j}>\text { 是G中的边 } \\ 0 & \text { 否则 }\end{cases}
-   $$
+   $$G[i][j]= \begin{cases}1 & \text { 若< } v_{i}, v_{j}>\text { 是G中的边 } \\ 0 & \text { 否则 }\end{cases}$$
    它是对称矩阵，有一半空间是浪费的 <br>
    因此，将上面邻接矩阵压缩成一个长度为N(N+1)/2的一维数组A：{G<sub>00</sub>,G<sub>10</sub>,G<sub>11</sub>,...,G<sub>n-1 0</sub>,...,G<sub>n-1 n-1</sub>,}
 
@@ -1810,14 +1806,171 @@ void ListComponents(Graph)
 }
 ```
 
+### 如何建立图
 
-## 图（中）
+#### 邻接矩阵表示
+```cpp
+typedef struct GNode *PtrToGNode;
+struct GNode{
+    int Nv; //顶点数
+    int Ne; //边数
+    WeightType G[MaxVertexNum][MaxVertexNum]
+    Datatype Data[MaxVertexNum] //存顶点的数据
+};
+typedef PtrToGNOde MGraph; //以邻接矩阵存储的图类型
+```
+初始化一个有VertexNum个顶点但没有边的图
+```cpp
+MGraph CreateGraph(int VertexNum)
+{
+    MGraph Graph;
+    Graph = (MGraph)malloc(sizeof(struct GNode));
+    Graph->Nv = VertexNum;
+    Graph->Ne = 0;
 
+    for(V =0 ;V<Graph->Nv;V++){
+        for(W=;W<Graph->Nv;W++){
+            Graph->G[V][W] = ;
+        }
+    }
+    return Graph;
+}
+```
+向MGraph中插入边
+```cpp
+typedef struct ENode *PtrToENode;
+struct ENode{
+    Vertex V1,V2; //有向边<V1,V2>
+    WeightType Weight; //权值
+};
+typedef PtrToENode Edge;
 
+void InsertEdge(MGraph Graph, Edge E)
+{
+    //插入<v1,v2>
+    Graph->G[E->V1][E->V2] = E->Weight;
+    //若是无向图，还要插入<v2,v1>
+    Graph->G[E->v2][E->v1] = E->Weight;
+}
+完整地建立一个MGraph<br>
+输入格式：<br>
+Nv Ne<br>
+V1 V2 Weight<br>
+... ...<br>
+```cpp
+MGraph BuildGraph()
+{
+    MGraph Graph;
 
+    scanf("%d",&Nv);
+    Graph = CreateGraph(NV); //initialization
+    scanf("%d",&(Graph->Ne));
+    if(Graph->Ne !=0){
+        E = (Edge)malloc(sizeof(struct ENode));
+        for(i=;i<Graph->Ne;i++){
+            scanf("%d %d %d",&E->V1,&E->V2,&E->Weight);
+            InsertEdge(Graph, E);
+        }
+    }
 
+    //如果顶点有数据的话，读入数据
+    for(V=;V<Graph->Nv;V++){
+        scanf("%c"),&(Graph->Data[V]);
+    }
+    return Graph;
+}
+```
 
+更简单的实现方法：
+```cpp
+int G[MAXN][MAXN],Nv,Ne;
+void BuildGraph()
+{
+    int i,j,v1,v2,w;
+    scanf("%d",&Nv);
+    // CreateGraph
+    for(i=;i<Nv;i++){
+        for(j=;j<Nv;j++){
+            G[i][j]=0;
+        }
+    }
+    scanf("%d",&Ne);
+    for(i=0;i<Ne;i++){
+        scanf("%d %d %d",&v1,&v2,&w);
+        G[v1][v2] = w;
+        G[v2][v1] = w;
+    }
+}
+```
 
+#### 邻接表表示
+![](pics/6.1.5.png)
+```cpp
+typedef struct GNode *PtrToGNode;
+struct GNode{
+    int Nv; //顶点数
+    int Ne; //边数
+    AdjList G; //邻接表
+}；
+typedef PtrToGNode LGraph;
+//以邻接表方式存储的图
+
+typedef struct Vnode{
+    PtrToAdjVNode FirstEdge;
+    DataType Data; //存顶点的数据
+} AdjList[MaxVertexNum];
+// AdjList是邻接表类型
+
+typedef struct AdjVNode *PtrToAdjVNode;
+struct AdjVNode{
+    Vertex AdjV; //邻接点下标
+    WeightType Weight; // 边权值
+    PtrToAdjVNode Next; // 指向下一个
+}
+
+```
+初始化一个有VertexNum个顶点但没有边的图
+```cpp
+typedef int Vertex; //用顶点下标表示顶点，为整形
+LGraph CreateGraph(int VertexNum)
+{
+    Vertex V,W;
+    LGraph Graph;
+    Graph = (LGraph)malloc(sizeof(struct GNode));
+    Graph->Nv = VertexNum;
+    Graph->Ne = 0;
+
+    // 使得其指针为空
+    for(V = 0;V<Graph->Nv;V++){
+        Graph->G[V].FirstEdge = NULL;
+    }
+    return Graph;
+}
+```
+向LGraph中插入边
+![](pics/6.1.6.png)
+```cpp
+void InsertEdge(LGraph Graph, Edge E)
+{
+    PtrToAdjVNode NewNode;
+    //先为V2建立新的邻接点
+    NewNode=(PtrToAdjVNode)malloc(sizeof(struct AdjVNode));
+    NewNode->AdjV = E->V2;
+    NewNode->Weight = E->Weight;
+    //再将V2插入V1的表头
+    NewNode->Next = Graph->G[E->V1].FirstEdge;
+    Graph->[E->V1].FirstEdge = NewNode;
+
+    //若是无向图，还要插入<V2,V1>
+    //先为V1建立新的邻接点
+    NewNode=(PtrToAdjVNode)malloc(sizeof(struct AdjVNode));
+    NewNode->AdjV = E->V1;
+    NewNode->Weight = E->Weight;
+    //再将V1插入V2的表头
+    NewNode->Next = Graph->G[E->V2].FirstEdge;
+    Graph->[E->V2].FirstEdge = NewNode;
+}
+```
 
 
 
