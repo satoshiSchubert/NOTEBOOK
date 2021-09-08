@@ -13,7 +13,7 @@ categories:
 
 # Notebook for DataStructure
 ---
-
+[数据结构复习题](https://blog.csdn.net/weixin_43751983/article/details/103411097)
 ## 第一讲 基本概念
 
 
@@ -1971,6 +1971,542 @@ void InsertEdge(LGraph Graph, Edge E)
     Graph->[E->V2].FirstEdge = NewNode;
 }
 ```
+## 图（下）
+
+### 最小生成树（Minimum Spanning Tree)
+
+**最小生成树存在** 和 **图连通** 是一对充分必要条件
+#### 定义
+- 是一棵树
+  - 无回路
+  - V个顶点一定有V-1条边
+- 是生成树
+  - 包含全部顶点
+  - V-1条边都在图里
+  - 向生成树中任加一条边都一定构成回路
+- 边的权重和最小
+
+#### 贪心算法
+
+- 每一步都要最好的
+- 每次都要权重最小的边
+
+**约束：**
+- **只能用图里有的边**
+- **只能正好用掉V-1条边**
+- **不能有回路**
+
+#### Prim(普利姆)算法-让一棵小树长大
+**注意：构造时需要判断不能构成回路！**
+
+适用于稠密图，算法复杂度为**O(V<sup>2</sup>**
+
+算法描述：
+1. 在一个加权连通图中，顶点集合V，边集合为E
+2. 任意选出一个点作为初始顶点,标记为visit,计算所有与之相连接的点的距离，选择距离最短的，标记visit.
+3. 重复以下操作，直到所有点都被标记为visit：
+   在剩下的点中，计算与已标记visit点距离最小的点，标记visit,证明加入了最小生成树。
+
+```cpp
+void Prim()
+{
+    //初始化：dist[V] = E(s,V)或正无穷
+    //        parent[s] = -1
+    MST = {s};
+    while(1){
+        V = 未收录顶点中dist最小者;
+        if(这样的V不存在){
+            break; //MST完成了，或者剩下的结点和树之间的距离都是无穷大
+        }
+        //将V收录进MST
+        for(V的每个邻接点W){
+            if(dist[W]!=0,"即没有被收录"){
+                if(E(V,W)<dist[W],"小树长大后，需要更新一下未收录结点和MST的距离"){
+                    dist[W] = E(V,W);
+                    parent[W] = V;
+                }
+            }
+        }if(MST中收录的顶点不到V个)
+         //说明图不是连通的
+         {
+             Error("生成树不存在");
+         }
+    }
+}
+```
+
+#### Kruskal算法-将森林合并成树
+**注意：构造时需要判断不能构成回路！**
+
+适用于稀疏图，直接选出权重最小的边（每一条边都会连接两棵树，因此是树的合并），直到无法再选出符合条件的边为止。时间复杂度：O(ElogE)
+
+```cpp
+void Kruskal(Graph G)
+{
+    MST = {};
+    while(MST中不到V-1条边&&E中还有边){
+        从E中取一条权重最小的边E(V,W); //最小堆
+        将E(V,W)从E中删除；
+        if(E(V,W)不在MST中构成回路)
+            将E(V,W)加入MST;
+        else
+            彻底无视E(V,W);
+    }
+    if(MST中不到V-1条边)
+        ERROR("生成树不存在")；
+}
+```
+### 拓扑排序
+
+- AOV(activity on vertex)网络,活动仅发生在顶点处。
+- 拓扑序：如果图中从V到W有一条有向路径，则V一定排在W之前。满足此条件的顶点序列称为一个拓扑序
+- 获得一个拓扑序的过程就是拓扑排序
+- AOV如果有合理的拓扑序，则必定是有向无环图（Directed Acyclic Graph, DAG)
+![](pics/8.2.1.png)
+
+算法：
+- 每次选择入度为0的顶点（没有前置结点）
+- 每次输出后，要把被输出的点和他对应的边给抹除
+- 不断这样一层一层输出，即可得到拓扑序
+![](pics/8.2.2.png)
+![](pics/8.2.3.png)
+
+O(V<sup>2</sup>)
+```cpp
+void TopSort()
+{
+    for(cnt = 0; cnt<V;cnt++){
+        V = 未输出的入度为0的顶点; //这一步的扫描很耗时（O(N)）
+        if(这样的V不存在){  //即，外循环还没结束，就碰到入度始终不为0的结点
+            Error("图中有回路");
+            break;
+        }
+        输出V，或者记录V的输出序号;
+        for(V的每个邻接点W){
+            Indegree[W]--;//入度减少
+        }
+    }
+}
+// 更加聪明的算法：随时将入度变为0的顶点放到一个容器里，这样就不用扫描
+void TopSort()
+{
+    for(图中每个顶点V){
+        if(Indegree[V]==0){
+            Enqueue(V,Q);
+        }while(!IsEmpty(Q)){
+            V = Dequeue(Q);
+            输出V，或者记录V的输出序号;
+            cnt++;
+            for(V的每个邻接点W){
+                if(--Indegree[W]==0){
+                    Enqueue(W,Q); //碰到入度为0的直接加入队列，就不用额外重新扫描
+                }
+            }
+        }
+    }
+    if(cnt != V){
+        ERROR("图中有回路");
+    }
+}
+```
+这个算法还可以用来检测一个有向图是否是有向无环图(DAG)
+
+#### 关键路径问题
+
+AOE(Activity On Edge)网络
+
+- 一般用于安排项目的工序
+![](pics/8.2.4.png)
+
+工期安排举例：
+![](pics/8.2.5.png)
+
+关键路径则是由**绝对不允许延误**的活动组成的路径
+
+
+## 排序（上）
+
+模板：
+
+### 简单排序
+
+#### 冒泡排序（稳定）
+改进：设立一个flag标志一次循环中是否有做交换（swap）若没有做交换，则认为其余序列已经是有序的，则可以直接跳出，节省时间。
+
+最好情况：顺序，T=O(N)<br>
+最坏情况：逆序，T=O(N<sup>2</sup>)
+
+优点：可与适配数组和链表，而且在由于只在值不同时才做交换，是稳定的。
+```cpp
+void Bubble_Sort(ElementType A[], int N)
+{
+    for (P=N-1;P>=0;P--){
+        flag = 0;
+        for(i=0;i<P;i++){
+            if(A[i]>A[i+1]){
+                swap(A[i], A[i+1]);
+                flag = 1;
+            }
+        }
+        if(flag==0) break;
+    }
+}
+```
+
+#### 插入排序（稳定）
+最好情况：顺序，T=O(N)<br>
+最坏情况：逆序，T=O(N<sup>2</sup>)
+```cpp
+void Insertion_Sort(ElementType A[], int N)
+{
+    for(P=1;P<N;P++){
+        Tmp = A[P]; 
+        for(i=P; i>0 && A[i-1] > Tmp; i--){
+            A[i] = A[i-1]; //数据往后逐个拷贝移位
+        }
+        A[i] = Tmp; //插入
+    }
+}
+```
+
+由于只有在牌大小不同时才移位，这种排序也是稳定的
+
+#### 时间复杂度下界
+- 对于下标i<j，如果A[i]>A[j], 则称(i,j)是一对逆序对(inversion)
+- 交换2个相邻元素正好消去1个逆序对!
+- 因此插入和冒泡对于同一个数列的交换次数一样不是巧合
+- 插入排序：T(N,I)=O(N+I)
+  - 如果序列基本有序，则插入排序简单有效
+- 任意N个不同元素组成的序列平均具有N(N-1)/4个逆序对。
+- 定理:任何仅以交换相邻两元素来排序的算法，其平均时间复杂度为Ω(N<sup>2</sup>)
+  - 因此，要提高效率，必须
+    - 每次消去不止一个的逆序对
+    - 每次交换相隔较远的2个元素
+
+### 希尔排序（Shell sort）（不稳定）
+即采取设定间隔来采样，并对采样值分别做插入排序.
+![](pics/9.1.1.png)
+
+希尔排序为什么不稳定？
+>希尔排序是按照不同步长对元素进行插入排序，当刚开始元素很无序的时候，步长最大，所以插入排序的元素个数很少，速度很快；当元素基本有序了，步长很小， 插入排序对于有序的序列效率很高。所以，希尔排序的时间复杂度会比O(n^2)好一些。由于多次插入排序，我们知道一次插入排序是稳定的，不会改变相同元素的相对顺序，但在不同的插入排序过程中，相同的元素可能在各自的插入排序中移动，最后其稳定性就会被打乱，所以shell排序是不稳定的。
+
+
+流程：
+1. 定义一个增量序列作为采样间隔DM>DM-1>...>D1=1，最后一位必须是1，比如{5, 3, 1}
+2. 对每个采样间隔进行“Dk-间隔排序”，比如对按照5-间隔滑动采样出来的5个序列分别进行插入排序。
+3. **注意:“Dk-间隔”有序的序列，在执行“Dk-1-间隔”排序后，仍然是“Dk间隔”有序的，这是希尔排序的关键**
+
+注意：需要保证增量序列的互质！增量元素不互质，则小增量可能根本不起作用，如：
+![](pics/9.1.2.png)
+
+因此增量序列的设计是关键的，如这里采用Sedgwick
+
+
+```cpp
+void ShellSort( ElementType A[], int N )
+{ /* 希尔排序 - 用Sedgewick增量序列 */
+     int Si, D, P, i;
+     ElementType Tmp;
+     /* 这里只列出一小部分增量 */
+     int Sedgewick[] = {929, 505, 209, 109, 41, 19, 5, 1, 0};
+     
+     for ( Si=0; Sedgewick[Si]>=N; Si++ ) 
+         ; /* 初始的增量Sedgewick[Si]不能超过待排序列长度 */
+
+     for ( D=Sedgewick[Si]; D>0; D=Sedgewick[++Si] )
+         for ( P=D; P<N; P++ ) { /* 插入排序*/
+             Tmp = A[P];
+             for ( i=P; i>=D && A[i-D]>Tmp; i-=D )
+                 A[i] = A[i-D];
+             A[i] = Tmp;
+         }
+}
+```
+
+### 选择排序（不稳定），堆排序（不稳定）
+
+#### 选择排序
+
+选择排序和插入排序的差别：插入排序是选择给定序列中最近的一组逆序对交换，而选择排序则是寻找全局最小元，并将其换到序列的最后位置
+
+选择排序是不稳定的。
+>举个例子，序列5 8 5 2 9，我们知道第一遍选择第1个元素5会和2交换，那么原序列中2个5的相对前后顺序就被破坏了，所以选择排序不是一个稳定的排序算法。
+
+选择排序算法：
+```cpp
+void Selection_Sort(ElementType A[], int N)
+{
+    for(i = 0; i< N; i++){
+        MinPosition = ScanForMin(A, i, N-1); //这一步scanformin需要O(N)的复杂度，可以用最小堆优化
+        // 从到中寻找最小元，并将其位置赋给MinPosition
+        Swap(A[i], A[MinPosition]});
+        // 将未排序部分的最小元换到有序部分的最后位置
+    }
+}
+```
+
+#### 堆排序
+（实际中，堆排序可能不如Sedgwick序列的希尔排序好用）
+
+简单的情况：调用一个最小堆，使用时让其返回根节点（最小值）即可。
+
+[堆排序不是稳定的](https://zhidao.baidu.com/question/589205766.html)
+[为什么需要判断排序是否稳定](https://blog.csdn.net/weixin_39996908/article/details/111108431)
+>在需要对多个(也意味着多次)具有优先级的关键字进行排序的场景下，稳定排序能利用上一次排序的结果服务于本次排序，从而保证对于值相同的元素的两次排序结果相同。
+
+算法：
+```cpp
+void Heap_Sort (ElementType A[], int N)
+{
+    BuildHeap(A); // O(N)
+    for(i=0;i<N;i++){
+        TmpA[i] = DeleteMin(A); //O(logN)
+    }
+    for(i=0; i<N; i++){ //这一步需要额外的O(N)空间，且复制也需要时间
+        A[i] = TmpA[i];
+    }
+}
+```
+另一种算法，直接在原数组上操作，不需额外开辟空间复制元素
+
+
+```cpp
+void PercDown( ElementType A[], int p, int N )
+{ /* 改编代码4.24的PercDown( MaxHeap H, int p )    */
+  /* 将N个元素的数组中以A[p]为根的子堆调整为最大堆 */
+    int Parent, Child;
+    ElementType X;
+
+    X = A[p]; /* 取出根结点存放的值 */
+    for( Parent=p; (Parent*2+1)<N; Parent=Child ) {
+        Child = Parent * 2 + 1;
+        if( (Child!=N-1) && (A[Child]<A[Child+1]) )
+            Child++;  /* Child指向左右子结点的较大者 */
+        if( X >= A[Child] ) break; /* 找到了合适位置 */
+        else  /* 下滤X */
+            A[Parent] = A[Child];
+    }
+    A[Parent] = X;
+}
+
+void HeapSort( ElementType A[], int N ) 
+{ /* 堆排序 */
+     int i;
+      
+     for ( i=N/2-1; i>=0; i-- )/* 建立最大堆 */
+         PercDown( A, i, N );
+     
+     for ( i=N-1; i>0; i-- ) {
+         /* 删除最大堆顶 */
+         Swap( &A[0], &A[i] ); /* 见代码7.1 */
+         PercDown( A, 0, i );
+     }
+```
+
+### 归并排序（稳定）
+
+是一种**稳定**的排序，算法复杂度也低。唯一的不好是需要额外的空间<br>
+
+内排序：指在排序期间数据对象全部存放在内存的排序。
+外排序：指在排序期间全部对象太多，不能同时存放在内存中，必须根据排序过程的要求，不断在内，外存间移动的排序。<br>
+归并排序适用于外排序，不适用于内排序
+
+
+#### 有序子列的归并
+类似多项式相加的思想：
+![](pics/9.2.1.png)
+
+算法：
+```cpp
+/* L = 左边起始位置, R = 右边起始位置, RightEnd = 右边终点位置*/
+void Merge( ElementType A[], ElementType TmpA[], int L, int R, int RightEnd )
+{ /* 将有序的A[L]~A[R-1]和A[R]~A[RightEnd]归并成一个有序序列 */
+     int LeftEnd, NumElements, Tmp;
+     int i;
+     
+     LeftEnd = R - 1; /* 左边终点位置 */
+     Tmp = L;         /* 有序序列的起始位置 */
+     NumElements = RightEnd - L + 1;
+     
+     while( L <= LeftEnd && R <= RightEnd ) {
+         if ( A[L] <= A[R] )
+             TmpA[Tmp++] = A[L++]; /* 将左边元素复制到TmpA */
+         else
+             TmpA[Tmp++] = A[R++]; /* 将右边元素复制到TmpA */
+     }
+
+     while( L <= LeftEnd )
+         TmpA[Tmp++] = A[L++]; /* 直接复制左边剩下的 */
+     while( R <= RightEnd )
+         TmpA[Tmp++] = A[R++]; /* 直接复制右边剩下的 */
+         
+     for( i = 0; i < NumElements; i++, RightEnd -- )
+         A[RightEnd] = TmpA[RightEnd]; /* 将有序的TmpA[]复制回A[] */
+}
+```
+
+#### 递归算法
+分而治之。
+![](pics/9.2.2.png)
+
+```cpp
+void Msort( ElementType A[], ElementType TmpA[], int L, int RightEnd )
+{ /* 核心递归排序函数 */ 
+     int Center;
+     
+     if ( L < RightEnd ) {
+          Center = (L+RightEnd) / 2;
+          Msort( A, TmpA, L, Center );              /* 递归解决左边 */ 
+          Msort( A, TmpA, Center+1, RightEnd );     /* 递归解决右边 */  
+          Merge( A, TmpA, L, Center+1, RightEnd );  /* 合并两段有序序列 */ 
+     }
+}
+```
+
+#### 非递归算法
+
+```cpp
+
+/* 归并排序 - 循环实现 */
+/* 这里Merge函数在递归版本中给出 */
+
+/* length = 当前有序子列的长度*/
+void Merge_pass( ElementType A[], ElementType TmpA[], int N, int length )
+{ /* 两两归并相邻有序子列 */
+     int i, j;
+      
+     for ( i=0; i <= N-2*length; i += 2*length )
+         Merge( A, TmpA, i, i+length, i+2*length-1 );
+     if ( i+length < N ) /* 归并最后2个子列*/
+         Merge( A, TmpA, i, i+length, N-1);
+     else /* 最后只剩1个子列*/
+         for ( j = i; j < N; j++ ) TmpA[j] = A[j];
+}
+
+void Merge_Sort( ElementType A[], int N )
+{ 
+     int length; 
+     ElementType *TmpA;
+     
+     length = 1; /* 初始化子序列长度*/
+     TmpA = malloc( N * sizeof( ElementType ) );
+     if ( TmpA != NULL ) {
+          while( length < N ) {
+              Merge_pass( A, TmpA, N, length );
+              length *= 2;
+              Merge_pass( TmpA, A, N, length );
+              length *= 2;
+          }
+          free( TmpA );
+     }
+     else printf( "空间不足" );
+}
+```
+## 排序（下）
+### 快速排序（不稳定）
+
+算法思想：分而治之<br>
+使用主元（pivot）将数据分成两块
+![](pics/10.1.1.png)
+
+伪码描述：
+```cpp
+void Quicksort(ElementType A[], int N)
+{
+    if(N<2) return;
+    pivot = 从A[]中选一个主元  <- 这一步很关键
+    将S={A[]\pivot}分成两个独立子集： <- 这一步也很关键
+        A1 = { a∈S | a≤pivot } 和
+        A2 = { a∈S | a≥pivot };
+    A[] = Quicksort(A1,N1)∪{pivot}∪Quicksort(A2,N2)
+}
+```
+
+当每次正好中分时，是快排算法的最好情况，此时O(NlogN)
+
+#### 怎么选择主元
+
+- 经典方法：取头、中、尾的中位数（一共就3个元素）（如8、12、3的中位数是8）
+
+```cpp
+ElementType Median3( ElementType A[], int Left, int Right )
+{ 
+    int Center = (Left+Right) / 2;
+    if ( A[Left] > A[Center] )
+        Swap( &A[Left], &A[Center] );
+    if ( A[Left] > A[Right] )
+        Swap( &A[Left], &A[Right] );
+    if ( A[Center] > A[Right] )
+        Swap( &A[Center], &A[Right] );
+    /* 此时A[Left] <= A[Center] <= A[Right] */
+    Swap( &A[Center], &A[Right-1] ); /* 将基准Pivot藏到右边*/
+    /* 只需要考虑A[Left+1] … A[Right-2] */
+    return  A[Right-1];  /* 返回基准Pivot */
+}
+```
+#### 怎么划分子集
+
+快排之所以快的原因在于子集划分之后，它的主元被一次性地放到了正确的位置上，以后不再移动，而不像插入排序那样之后还可能要移动。
+
+如果有元素正好等于pivot，则停下来交换，这样可以保证pivot最后会处于比较中心的位置，对于递归来说是有好处的
+
+初始状态，6为pivot，初始化两个指针i和j，分别往右和往左移<br>
+i所指向的值应该比6小，否则就发出红色警告，j反之。
+![](pics/10.1.2.png)
+一边发出红色警告则停止，让另一边开始移动；如果两边都发出红色警告，则停止
+![](pics/10.1.3.png)
+并交换他们所指向的元素。
+![](pics/10.1.4.png)
+然后进行下一轮的比较，如果没有发出警报就一直右移/左移
+![](pics/10.1.5.png)
+交换，
+![](pics/10.1.6.png)
+直到检测到i，j错位，则结束，并将pivot交换到i的位置
+![](pics/10.1.7.png)
+
+
+#### 对于小规模数据的处理：
+- 快速排序的问题
+  - 用到递归
+  - 对小规模的数据（例如N不到100）可能还不如插入排序快
+- 解决方案
+  - 当递归的数据规模小于一个阈值，则停止递归，直接调用简单排序（例如插入排序）
+
+```cpp
+void Qsort( ElementType A[], int Left, int Right )
+{ /* 核心递归函数 */ 
+     int Pivot, Cutoff, Low, High;
+      // Cutoff是阈值
+     if ( Cutoff <= Right-Left ) { /* 如果序列元素充分多，进入快排 */
+          Pivot = Median3( A, Left, Right ); /* 选基准 */ 
+          Low = Left; High = Right-1;
+          while (1) { /*将序列中比基准小的移到基准左边，大的移到右边*/
+               while ( A[++Low] < Pivot ) ;
+               while ( A[--High] > Pivot ) ;
+               if ( Low < High ) Swap( &A[Low], &A[High] );
+               else break;
+          }
+          Swap( &A[Low], &A[Right-1] );   /* 将基准换到正确的位置 */ 
+          Qsort( A, Left, Low-1 );    /* 递归解决左边 */ 
+          Qsort( A, Low+1, Right );   /* 递归解决右边 */  
+     }
+     else InsertionSort( A+Left, Right-Left+1 ); /* 元素太少，用简单排序 */ 
+}
+
+void QuickSort( ElementType A[], int N )
+{ /* 统一接口 */
+     Qsort( A, 0, N-1 );
+}
+```
+
+
+
+
+
+
+
+
+
 
 
 
