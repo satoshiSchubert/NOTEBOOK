@@ -2573,12 +2573,302 @@ void Bucket_Sort(ElementType A[], int N)
 |基数排序|O(P(N+B))|O(P(N+B))|O(N+B)|稳定|
 
 
+## 散列查找（哈希）
+
+目前已经学过的查找方法：
+1. 顺序查找 O(N)
+2. 二分查找（静态查找），需要先把数据从小到大排好 O(log<sub>2</sub>N)
+3. 二叉搜索树 O(h) h为二叉查找树的高度
+4. 平衡二叉树(AVL) O(log<sub>2</sub>N)
+
+对于二叉查找，对于 10亿 的用户，查找30次即可，且只需要1T的连续空间。但是因为账户数据是按大小有序存储的，插入和删除一个新的QQ号码将需要移动大量数据。
+
+**查找的本质：**已知对象，查找位置
+- 如果是有序安排对象：全序、半序
+- 直接“算出”对象位置：散列/哈希
+
+散列查找的两项基本工作：
+- 计算位置：构造合适的散列函数(哈希函数)来确定关键词的存储位置
+- 解决冲突：应用某种策略解决多个关键词位置相同的问题
+
+哈希的时间复杂度几乎是常量：O(1),也就是说查找时间与问题的规模无关！
+
+以空间换时间
+
+### 哈希表
+哈希表的数据结构描述：
+
+类型名称:符号表（SymbolTable）
+
+数据对象集：符号表是“名字(Name)-属性(Attribute)”对的集合。
+
+操作集：Table$\in$SymbolTable，Name$\in$NameType，Attr$\in$AttributeType
+1. SymbolTable InitializeTable( int TableSize )： 创建一个长度为TableSize的符号表；
+2. Boolean IsIn( SymbolTable Table, NameType Name)： 查找特定的名字Name是否在符号表Table中；
+3. AttributeType Find( SymbolTable Table, NameType Name)： 获取Table中指定名字Name对应的属性；
+4. SymbolTable Modefy(SymbolTable Table, NameType Name, AttributeType Attr)： 将Table中指定名字Name的属性修改为Attr；
+5. SymbolTable Insert(SymbolTable Table, NameType Name, AttributeType Attr)： 向Table中插入一个新名字Name及其属性Attr；
+6. SymbolTable Delete(SymbolTable Table, NameType Name)： 从Table中删除一个名字Name及其属性。
+
+“散列（Hashing）” 的基本思想是：
+- 以关键字key为自变量，通过一个确定的函数 h（散列函数），计算出对应的函数值h(key)，作为数据对象的存储地址。
+- 可能不同的关键字会映射到同一个散列地址上， 即h(key<sub>i</sub>) = h(key<sub>j</sub>)（当key<sub></sub> ≠key<sub>j</sub>），称为“冲突(Collision)”。
+- 因此需要某种冲突解决策略
+
+举例：<br>
+有n = 11个数据对象的集合{18，23，11，20，2，7，27，30，
+42，15，34}。<br>
+符号表的大小用TableSize = 17，选取散列函数h如下：
+h(key) = key mod TableSize (求余)
+![](pics/11.1.1.png)
+
+1. 存放：
+    h(18)=1, h(23)=6, h(11)=11, h(20)=3, h(2)=2, …….<br>
+    如果新插入35， h(35)=1, 该位置已有对象！冲突！！(潜在解决办法：使用二维数组，先匹配到对应的行的第一列，如果有冲突，加到该行的后续的列)
+
+2. 查找：
+   key = 22, h(22)= 5，该地址空，不在表中<br>
+   key = 30, h(30)= 13，该地址存放是30，找到！
+
+装填因子（Loading Factor）：设散列表空间大小为m，填入表
+中元素个数是n，则称α＝ n / m为散列表的装填因子α＝11 / 17 ≈ 0.65
 
 
+### 哈希函数的构造方法
+
+一个“好”的散列函数一般应考虑下列两个因素：
+1. 计算简单，以便提高转换速度；
+2. 关键词对应的地址空间分布均匀，以尽量减少冲突。
+
+#### **数字关键词**的哈希函数构造
+1. 直接定址法
+   取关键词的某个线性函数值为散列地址，即h(key) = a · key + b (a、b为常数)
+2. 除留余数法
+   哈希函数为：h(key) = key mod p
+3. 数字分析法
+   分析数字关键字在各位上的变化情况，取比较随机的位作为散列地址<br>
+   比如：取11位手机号码key的后4位作为地址：散列函数为：h(key) = atoi(key+7) (char *key），atoi是array to integer函数
+
+4. 折叠法
+   把关键词分割成位数相同的几个部分，然后叠加：
+   ![](pics/11.1.2.png)
+5. 平方取中法
+   ![](pics/11.1.3.png)
 
 
+#### **字符关键词**的哈希函数构造
+通过求余mod操作来实现大整数向小整数的映射
 
+1. 一个简单的散列函数——ASCII码加和法
+   对字符型关键词key定义散列函数如下：
+   $$ h(key) = ( \Sigma key[i]) mod TableSize $$
+   但是这个方法在碰到这些字符时冲突严重：a3, b2, c1; eat, tea
 
+2. 简单的改进——前3个字符移位法:
+   $$ h(key)=(key[0] \times 27^2 + key[1] \times 27 + key[2])mod TableSize $$
+   仍然冲突：string、 street、strong、structure等等；空间浪费：3000/263 ≈ 30%
+
+3. 好的散列函数——移位法:
+   涉及关键词所有n个字符，并且分布得很好：
+   $$h(key) = (\Sigma_{i=0}^{n-1} key[n - i - 1]\times 32^i ) mod TableSize$$
+
+快速计算：
+
+$$h(“abcde”)=‘a’*324+’b’*323+’c’*322+’d’*32+’e’$$
+
+巧妙的做法：<br>
+( ( (a x 32 + b) x 32 + c) x 32 + d) ...<br>
+而这里更巧妙的是，乘以32实际上就是向左移动5位
+```cpp
+Index Hash ( const char *Key, int TableSize )
+{ 
+    unsigned int h = 0; // 散列函数值，初始化为0 
+    while ( *Key != '\0') // 这里\0代表字符串的末尾，为空
+        h = ( h << 5 ) + *Key++; //左移5位就是乘32，因此虽然ascii码字母只有27，我们还是把进制设为32更方便
+    return h % TableSize;
+}
+```
+### 冲突的处理
+
+#### 开放地址法（Open Addressing）
+若发生了第 i 次冲突，试探的下一个地址将增加di，基本公式是：
+
+$$h_i(key) = (h(key)+d_i) mod TableSize ( 1≤ i < TableSize )$$
+
+di 决定了不同的解决冲突方案：线性探测($d_i=i$)、平方探测($d_i = \pmi^2$)、双散列($d_1 = i\timesh_2(key$)。
+
+##### 线性探测法（Linear Probing）
+
+线性探测法：以增量序列 1，2，……，TableSize -1）循环试探下一个存储地址。
+
+[例] 设关键词序列为 {47，7，29，11，9，84，54，20，30}，
+- 散列表表长TableSize =13 （装填因子 α = 9/13 ≈ 0.69）；
+- 散列函数为：h(key) = key mod 11。
+用线性探测法处理冲突，列出依次插入后的散列表，并估算查找性能
+
+![](pics/11.1.4.png)
+
+![](pics/11.1.5.png)
+
+**哈希表查找性能分析**
+- 成功平均查找长度(ASLs)
+- 不成功平均查找长度(ASLu)
+
+对于散列表：
+![](pics/11.1.6.png)
+
+ASLs：查找表中关键词的平均查找比较次数（其冲突次数加1）<br>
+ASLs= （1+7+1+1+2+1+4+2+4）/ 9 = 23/9 ≈ 2.56
+
+ASLu：不在散列表中的关键词的平均查找次数（不成功）<br>
+一般方法：将不在散列表中的关键词分若干类。
+如：根据H(key)值分类<br>
+ASL u= （3+2+1+2+1+1+1+9+8+7+6）/ 11 = 41/11 ≈ 3.73
+
+##### 平方探测法（Quadratic Probing）--- 二次探测
+
+平方探测法：以增量序列$1^2，-1^2，2^2，-2^2，……，q^2，-q^2$且$q ≤ floor(TableSize/2)$(向下取整)循环试探下一个存储地址。
+
+[例]设关键词序列为 {47，7，29，11，9，84，54，20，30}，
+- 散列表表长TableSize = 11，
+- 散列函数为：h(key) = key mod 11。
+用平方探测法处理冲突，列出依次插入后的散列表，并估算ASLs。
+![](pics/11.2.1.png)
+
+ASLs = （1+1+2+1+1+3+1+4+4）/ 9 = 18/9 = 2
+![](pics/11.2.2.png)
+
+但是，对于某些tablesize，平方探测（二次探测）并不能接触到全部的空间。<br>
+如果散列表长度TableSize是某个4k+3（k是正整
+数）形式的素数时，平方探测法就可以探查到整个散列表空间
+
+```cpp
+typedef struct
+HashTbl *HashTable;
+struct HashTbl{
+    int TableSize;
+    Cell *TheCells;
+}H ;
+
+HashTable InitializeTable( int TableSize )
+{
+    HashTable H;
+    int i;
+    if ( TableSize < MinTableSize ){
+        Error( "散列表太小" );
+        return NULL;
+    }
+    /* 分配散列表 */
+    H = (HashTable)malloc( sizeof( struct HashTbl ) );
+    if ( H == NULL )
+        FatalError( "空间溢出!!!" );
+    H->TableSize = NextPrime( TableSize );
+        /* 分配散列表 Cells */
+    H->TheCells=(Cell *)malloc(sizeof( Cell )*H->TableSize);
+    if( H->TheCells == NULL )
+        FatalError( "空间溢出!!!" );
+    for( i = 0; i < H->TableSize; i++ )
+        H->TheCells[ i ].Info = Empty;
+    return H;
+}
+
+Position Find( ElementType Key, HashTable H ) /*平方探测*/
+{ Position CurrentPos, NewPos;
+    int CNum; /* 记录冲突次数 */
+    CNum = 0;
+    NewPos = CurrentPos = Hash( Key, H->TableSize ); 
+    while( H->TheCells[ NewPos ].Info != Empty &&
+    H->TheCells[ NewPos ].Element != Key ) {
+    /* 字符串类型的关键词需要 strcmp 函数!! */
+        if(++CNum % 2){ /* 判断冲突的奇偶次 */
+            NewPos = CurrentPos + (CNum+1)/2*(CNum+1)/2;//这里的操作很巧妙，看下图！
+            while( NewPos >= H->TableSize )
+            NewPos -= H->TableSize;
+        } else {
+            NewPos = CurrentPos - CNum/2 * CNum/2;//这里的操作很巧妙，看下图！
+            while( NewPos < 0 )
+            NewPos += H->TableSize;
+        }
+    }
+    return NewPos;
+    }
+```
+![](pics/11.2.3.png)
+
+```cpp
+void Insert( ElementType Key, HashTable H )
+{ /* 插入操作 */
+    Position Pos;
+    Pos = Find( Key, H );
+    if( H->TheCells[ Pos ].Info != Legitimate ) {
+        /* 确认在此插入 */
+        H->TheCells[ Pos ].Info = Legitimate;
+        H->TheCells[ Pos ].Element = Key;
+        /*字符串类型的关键词需要 strcpy 函数!! */
+    }
+}
+```
+在开放地址散列表中，删除操作要很小心。 通常只能“懒惰删除”，即需要增加一个“删除标记(Deleted)”，而并不是真正删除它。 以便查找时不会“断链”。其空间可以在下次插入时重用
+
+##### 双散列探测法（Double Hashing）
+
+di 为i*h<sub>2</sub>(key)，h<sub>2</sub>(key)是另一个散列函数探测序列成：h<sub>2</sub>(key)，2h<sub>2</sub>(key)，3h<sub>2</sub>(key)，……
+
+- 对任意的key，h2(key) ≠ 0 
+- 探测序列还应该保证所有的散列存储单元都应该能够被探测到。 选择以下形式有良好的效果：
+  h<sub>2</sub>(key) = p - (key mod p)<br>
+  其中：p < TableSize，p、TableSize都是素数。
+
+##### 再散列（Rehashing）
+当散列表元素太多（即装填因子 α太大）时，查找效率会下降；
+
+实用最大装填因子一般取 0.5 <= α<= 0.85
+
+当装填因子过大时，解决的方法是加倍扩大散列表，这个过程叫
+做“再散列（Rehashing）”
+
+注意：扩大散列表后，原来的元素需要全部重新计算
+
+##### 分离链接法（Separate Chaining）
+分离链接法：将相应位置上冲突的所有关键词存储在同一个单链表中
+
+[例] 设关键字序列为 47, 7, 29, 11, 16, 92, 22, 8, 3, 50, 37, 89, 94, 21;<br>
+散列函数取为：h(key) = key mod 11；<br>
+用分离链接法处理冲突。
+```cpp
+struct HashTbl {
+ int TableSize;
+ List TheLists;
+} *H;
+```
+![](pics/11.2.4.png)
+
+表中有9个结点只需1次查找，5个结点需要2次查找，查找成功的平均查找次数：<br>
+ ASLs=（9+5*2）/ 14 ≈ 1.36
+
+```cpp
+typedef struct ListNode *Position, *List;
+struct ListNode {
+    ElementType Element;
+    Position Next;
+};
+typedef struct HashTbl *HashTable; 
+struct HashTbl {
+    int TableSize;
+    List TheLists;
+};
+Position Find( ElementType Key, HashTable H )
+{ 
+    Position P;
+    int Pos;
+
+    Pos = Hash( Key, H->TableSize ); /*初始散列位置*/
+    P = H->TheLists[Pos]. Next; /*获得链表头*/
+    while( P != NULL && strcmp(P->Element, Key) )
+        P = P->Next;
+    return P;
+}
+```
 
 
 
