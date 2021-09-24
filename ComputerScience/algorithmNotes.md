@@ -14,6 +14,21 @@ categories:
 
 ### Problems to be solve:
 [并查集，洛谷P1551](https://zhuanlan.zhihu.com/p/93647900/)
+004-重建二叉树
+017-树的子结构
+018-二叉树的镜像
+022-从上往下打印二叉树
+023-二叉搜索树的后序遍历序列
+024-二叉树中和为某一值的路径
+026-二叉搜索树与双向链表
+038-二叉树的深度
+039-平衡二叉树
+057-二叉树的下一个结点
+058-对称的二叉树
+059-按之字形顺序打印二叉树
+060-把二叉树打印成多行
+061-序列化二叉树
+062-二叉搜索树的第k个结点
 
 
 # Notebook for Algorithm Ploblems
@@ -26,12 +41,24 @@ https://books.halfrost.com/leetcode/ChapterTwo/Linked_List/
 LEETCODE:
 
   - [2. Add Two Numbers](#2-add-two-numbers)
-  - [P1014 [NOIP1999 普及组] Cantor 表](#p1014-noip1999-普及组-cantor-表)
   - [82. Remove Duplicates from Sorted List II](#82-remove-duplicates-from-sorted-list-ii)
+  - [341. Flatten Nested List Iterator](#341-flatten-nested-list-iterator)
 
 LUOGU:
 - [P1014.Cantor表](#p1014-noip1999-普及组-cantor-表)
 
+SUMMARY:
+- [Leetcode]2. Add Two Numbers
+- [Leetcode]21. Merge Two Sorted Lists
+- [Leetcode]82. Remove Duplicates from Sorted List II
+- [Leetcode]83. Remove Duplicates from Sorted List
+- [Leetcode]141. Linked List Cycle
+- [Leetcode]203. Remove Linked List Elements
+- [Leetcode]225. Implement Stack using Queues
+- [Leetcode]232. Implement Queue using Stacks
+- [Leetcode]237. Delete Node in a Linked List
+- [Leetcode]341. Flatten Nested List Iterator
+- [Luogu]P1014.Cantor表
 ---
 ### 2. Add Two Numbers
 https://leetcode.com/problems/add-two-numbers/
