@@ -21,7 +21,6 @@ categories:
 024-二叉树中和为某一值的路径
 026-二叉搜索树与双向链表
 038-二叉树的深度
-039-平衡二叉树
 057-二叉树的下一个结点
 059-按之字形顺序打印二叉树
 060-把二叉树打印成多行
@@ -38,6 +37,8 @@ https://books.halfrost.com/leetcode/ChapterTwo/Linked_List/
 
 LEETCODE:
 
+  - [0. TEMPLATE]()
+  - [110. Balanced Binary Tree](#110-balanced-binary-tree)
   - [2. Add Two Numbers](#2-add-two-numbers)
   - [82. Remove Duplicates from Sorted List II](#82-remove-duplicates-from-sorted-list-ii)
   - [99. Recover Binary Search Tree](#99-recover-binary-search-tree)
@@ -54,6 +55,7 @@ SUMMARY:
 - [Leetcode]94. Binary Tree Inorder Traversal
 - [Leetcode]99. Recover Binary Search Tree
 - [Leetcode]101. Symmetric Tree
+- [Leetcode]110. Balanced Binary Tree
 - [Leetcode]141. Linked List Cycle
 - [Leetcode]144. Binary Tree Preorder Traversal
 - [Leetcode]203. Remove Linked List Elements
@@ -63,6 +65,91 @@ SUMMARY:
 - [Leetcode]341. Flatten Nested List Iterator
 - [Luogu]P1014.Cantor表
 ---
+
+### 0. TEMPLATE
+https://links_to_the_ploblem.com
+
+date: 20xx-xx-xx xx:xx:xx
+
+>description,不要最好，越简单越好
+
+```cpp
+SOLUTION!
+```
+
+comment:<br>
+你的心得blablabla
+
+
+### 114. Flatten Binary Tree to Linked List
+https://leetcode.com/problems/flatten-binary-tree-to-linked-list/
+
+date: 2021-10-09 21:18
+
+comment:<br>
+直接看这个题解，反向pre order traversal，很强。自己是用的很傻逼的方法，先先序遍历一边存进数组，在按照这个数组建树。
+
+
+
+### 110. Balanced Binary Tree
+https://leetcode.com/problems/balanced-binary-tree/
+
+date: 2021-10-09 19:31
+
+**二叉树层序遍历标准方法：使用递归（感觉对于树，经常会用到递归呃）**<br>
+有两种方法：
+
+1. 根据定义：该节点的左子树高和右子树高相差不大于一；左子树也是平衡二叉树；右子树也是平衡二叉树。不得不说，递归真的妙啊。
+
+```cpp
+class Solution {
+public:
+    int depth(TreeNode* root){
+        if(root==NULL) return 0;
+        
+        int left = depth(root->left);
+        int right = depth(root->right);
+
+        return max(left,right) + 1;
+        
+    }
+    
+    bool isBalanced(TreeNode* root) {
+        
+        if(root==NULL) return true;
+        int left_depth = depth(root->left);
+        int right_depth = depth(root->right);
+        
+        return abs(left_depth - right_depth)<=1 && isBalanced(root->left) &&  isBalanced(root->right);        
+    }
+};
+```
+2. 使用DFS。碰到高度差大于1的直接复制-1，并不断传递到最上层。
+
+```cpp
+class solution {
+public:
+int dfsHeight (TreeNode *root) {
+        if (root == NULL) return 0;
+        
+        int leftHeight = dfsHeight (root -> left);
+        if (leftHeight == -1) return -1;
+        int rightHeight = dfsHeight (root -> right);
+        if (rightHeight == -1) return -1;
+        
+        if (abs(leftHeight - rightHeight) > 1)  return -1;
+        return max (leftHeight, rightHeight) + 1;
+    }
+    bool isBalanced(TreeNode *root) {
+        return dfsHeight (root) != -1;
+    }
+};
+```
+
+comment:<br>
+https://leetcode.com/problems/balanced-binary-tree/discuss/35691/The-bottom-up-O(N)-solution-would-be-better
+
+
 ### 2. Add Two Numbers
 https://leetcode.com/problems/add-two-numbers/
 
