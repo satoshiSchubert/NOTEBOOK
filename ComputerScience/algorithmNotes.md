@@ -14,7 +14,6 @@ categories:
 
 ### Problems to be solve:
 [并查集，洛谷P1551](https://zhuanlan.zhihu.com/p/93647900/)
-004-重建二叉树
 017-树的子结构
 018-二叉树的镜像
 022-从上往下打印二叉树
@@ -24,7 +23,6 @@ categories:
 038-二叉树的深度
 039-平衡二叉树
 057-二叉树的下一个结点
-058-对称的二叉树
 059-按之字形顺序打印二叉树
 060-把二叉树打印成多行
 061-序列化二叉树
@@ -42,6 +40,7 @@ LEETCODE:
 
   - [2. Add Two Numbers](#2-add-two-numbers)
   - [82. Remove Duplicates from Sorted List II](#82-remove-duplicates-from-sorted-list-ii)
+  - [99. Recover Binary Search Tree](#99-recover-binary-search-tree)
   - [341. Flatten Nested List Iterator](#341-flatten-nested-list-iterator)
 
 LUOGU:
@@ -52,7 +51,11 @@ SUMMARY:
 - [Leetcode]21. Merge Two Sorted Lists
 - [Leetcode]82. Remove Duplicates from Sorted List II
 - [Leetcode]83. Remove Duplicates from Sorted List
+- [Leetcode]94. Binary Tree Inorder Traversal
+- [Leetcode]99. Recover Binary Search Tree
+- [Leetcode]101. Symmetric Tree
 - [Leetcode]141. Linked List Cycle
+- [Leetcode]144. Binary Tree Preorder Traversal
 - [Leetcode]203. Remove Linked List Elements
 - [Leetcode]225. Implement Stack using Queues
 - [Leetcode]232. Implement Queue using Stacks
@@ -378,8 +381,97 @@ comment:<br>
 
 只能说，脑子还不够灵光，想不到这么抽象的层面啊！
 
+### 99. Recover Binary Search Tree
+https://leetcode.com/problems/recover-binary-search-tree/
+
+**[LEETCODE] [Medium] [tree]**
+
+date: 2021-10-08 19:54:00
+```cpp
+class Solution {
+public:
+    TreeNode* firstElement = NULL;
+    TreeNode* secondElement = NULL;
+    TreeNode* prevElement = new TreeNode(INT_MIN);
+    int temp;
+    
+    void recoverTree(TreeNode* root) {
+        traverse(root);
+        
+        temp = firstElement->val;
+        firstElement->val = secondElement->val;
+        secondElement->val = temp;
+    }
+    void traverse(TreeNode* root){
+        if(!root){
+            return;
+        }
+        traverse(root->left);
+
+        if(!firstElement && prevElement->val > root->val){
+            firstElement = prevElement;
+        }
+        if(firstElement && prevElement->val > root->val){
+            secondElement = root;
+        }
+        prevElement = root;
+        
+        traverse(root->right);
+    }  
+};
+```
+comment:<br>
+直接看这个题解，简直无敌：<br>
+https://leetcode.com/problems/recover-binary-search-tree/discuss/32535/No-Fancy-Algorithm-just-Simple-and-Powerful-In-Order-Traversal
+<br>
+需要推一下递归算法排查节点的顺序，就可以理解两个traverse之间的操作了。<br>
+不得不说，碰到树的题目时，递归还是爽啊。
 
 
+### 102. Binary Tree Level Order Traversal
+https://leetcode.com/problems/binary-tree-level-order-traversal/
+
+**[LEETCODE] [Medium] [tree]**
+
+date: 2021-10-09 10:47:00
+```cpp
+class Solution {
+public:
+    vector<vector<int>> levelOrder(TreeNode* root) {
+        queue<TreeNode*> que;
+        TreeNode* curr;
+        vector<vector<int>> output;
+        vector<int> temp;
+        
+        if(!root) return output;
+        
+        que.push(root);
+        que.push(NULL); //NULL is a marker.
+        
+        while(!que.empty()){
+            
+            curr = que.front();
+            que.pop();
+            
+            if(curr!=NULL){
+                temp.push_back(curr->val);
+                if(curr->left) que.push(curr->left);
+                if(curr->right) que.push(curr->right);
+            }else{
+                output.push_back(temp);
+                temp.resize(0); //Clear.
+                if(que.size()>0) que.push(NULL); //Iteratively add NULL marker to confine each level.
+            }
+        }
+        return output;
+    }
+};
+```
+comment:<br>
+层序遍历的核心代码是很简单的，一个queue就行，这里的问题在于如何判断每一层的末尾，这里卡了好久。。。<br>
+最后还是看了别人的题解，这里用了一个类似递归的方法：在queue中，先在root后插入一个NULL作为标记，今后扫到这个NULL时（上层扫到NUUL那么下层应该也全部入队完毕了），在queue的末尾插入一个NULL，这样就可以自动重复下去了，只能说很妙。<br>
+注意插入NULL时要判断现在的queue是不是已经为空，否则会死循环，因为NULL本身是占据空间的。<br>
+PS:甚至不用这个NULL作为marker，直接用queue.size()即可，因为这个信息也是在最初可以直到的。
 
 
 
