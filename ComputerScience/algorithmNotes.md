@@ -14,18 +14,7 @@ categories:
 
 ### Problems to be solve:
 [并查集，洛谷P1551](https://zhuanlan.zhihu.com/p/93647900/)
-017-树的子结构
-018-二叉树的镜像
-022-从上往下打印二叉树
-023-二叉搜索树的后序遍历序列
-024-二叉树中和为某一值的路径
-026-二叉搜索树与双向链表
-038-二叉树的深度
-057-二叉树的下一个结点
-059-按之字形顺序打印二叉树
-060-把二叉树打印成多行
-061-序列化二叉树
-062-二叉搜索树的第k个结点
+[剑指offer](https://github.com/gatieme/CodingInterviews)
 
 
 # Notebook for Algorithm Ploblems
@@ -35,43 +24,27 @@ https://books.halfrost.com/leetcode/ChapterTwo/Linked_List/
 
 ### 目录：
 
-LEETCODE:
-
   - [0. TEMPLATE]()
+  - [### JZ40 最小的K个数](#jz40-最小的k个数)
+  - [JZ30 包含min函数的栈](#jz30-包含min函数的栈)
+  - [JZ35 复杂链表的复制](#jz35-复杂链表的复制)
+  - [JZ31 栈的压入、弹出序列](#jz31-栈的压入弹出序列)
+  - [105. Construct Binary Tree from Preorder and Inorder Traversal](#105-construct-binary-tree-from-preorder-and-inorder-traversal)
+  - [114. Flatten Binary Tree to Linked List](#114-flatten-binary-tree-to-linked-list)
   - [110. Balanced Binary Tree](#110-balanced-binary-tree)
   - [2. Add Two Numbers](#2-add-two-numbers)
   - [82. Remove Duplicates from Sorted List II](#82-remove-duplicates-from-sorted-list-ii)
   - [99. Recover Binary Search Tree](#99-recover-binary-search-tree)
   - [341. Flatten Nested List Iterator](#341-flatten-nested-list-iterator)
+  - [P1014.Cantor表](#p1014-noip1999-普及组-cantor-表)
 
-LUOGU:
-- [P1014.Cantor表](#p1014-noip1999-普及组-cantor-表)
-
-SUMMARY:
-- [Leetcode]2. Add Two Numbers
-- [Leetcode]21. Merge Two Sorted Lists
-- [Leetcode]82. Remove Duplicates from Sorted List II
-- [Leetcode]83. Remove Duplicates from Sorted List
-- [Leetcode]94. Binary Tree Inorder Traversal
-- [Leetcode]99. Recover Binary Search Tree
-- [Leetcode]101. Symmetric Tree
-- [Leetcode]110. Balanced Binary Tree
-- [Leetcode]141. Linked List Cycle
-- [Leetcode]144. Binary Tree Preorder Traversal
-- [Leetcode]203. Remove Linked List Elements
-- [Leetcode]225. Implement Stack using Queues
-- [Leetcode]232. Implement Queue using Stacks
-- [Leetcode]237. Delete Node in a Linked List
-- [Leetcode]341. Flatten Nested List Iterator
-- [Luogu]P1014.Cantor表
 ---
 
 ### 0. TEMPLATE
 https://links_to_the_ploblem.com
 
-date: 20xx-xx-xx xx:xx:xx
+date: 20xx/xx/xx
 
->description,不要最好，越简单越好
 
 ```cpp
 SOLUTION!
@@ -80,21 +53,319 @@ SOLUTION!
 comment:<br>
 你的心得blablabla
 
+### JZ40 最小的K个数
+https://www.nowcoder.com/practice/6a296eb82cf844ca8539b57c23e6e9bf?tpId=13&tqId=23263&ru=/ta/sql-quick-study&qru=/ta/sql-quick-study/question-ranking
+
+date: 2021/10/18
+
+
+```cpp
+class Solution {
+public:
+    vector<int> GetLeastNumbers_Solution(vector<int> input, int k) {
+        vector<int> output;
+        output = SelectSort(input, k);
+        output = QuickSort(input, k);
+        output = MinHeap(input, k);
+        
+        
+        return output;
+    }
+    //选择排序
+    vector<int> SelectSort(vector<int> input, int k){
+        int min = input[0];
+        int temp, i, count;
+        for(count=0;count<k;count++){
+            for(i=count+1;i<input.size();i++){
+                if(input[i]<input[count]){
+                    temp = input[count];
+                    input[count] = input[i];
+                    input[i] = temp;
+                }
+            }
+        }
+        vector<int> out(&input[0],&input[k]);
+        return out;
+    }
+    // 快排
+    vector<int> QuickSort(vector<int> input, int k){
+        sort(input.begin(),input.end());
+        vector<int> out;
+        for(int i=0;i<k;i++){
+            out.push_back(input[i]);
+        }
+        return out;
+    }
+    // 最小堆
+    vector<int> MinHeap(vector<int> input, int k){
+        vector<int> res;
+        if(!input.size()||input.size()<k) return res;
+        // less<int>() 是大顶堆，greater<int>() 是小顶堆，默认大顶堆
+        make_heap(input.begin(),input.end(),greater<int>());
+        for(int i=0;i<k;i++){
+            //最小的元素在堆顶
+            res.push_back(input[0]);
+            //以下两个方法均可：
+            //1.清除它，然后重新建立堆：
+            //(疑问：sort_heap一次之后堆应该就无效了，不如直接sort完取前k个)
+            //input.erase(input.begin());
+            //sort_heap(input.begin(),input.end());
+            //2.或者直接从堆中弹出这个元素，用堆的弹出函数
+            pop_heap(input.begin(),input.end(),greater<int>());
+            input.pop_back(); //vector删除末尾元素(前面的堆已经默认最后的元素被删了)
+        }
+        return res;
+    }
+};
+```
+
+comment:<br>
+三种方式：选择排序，快速排序和最小堆（最小堆感觉挺神奇的）<br>
+最小堆的使用：https://www.cnblogs.com/woxiaosade/p/10628388.html
+
+
+### JZ70 矩形覆盖
+https://www.nowcoder.com/practice/72a5a919508a4251859fb2cfb987a0e6?tpId=13&tqId=23283&ru=/ta/sql-quick-study&qru=/ta/sql-quick-study/question-ranking
+
+date: 2021/10/17
+
+我们可以用2*1的小矩形横着或者竖着去覆盖更大的矩形。请问用n个2*1的小矩形无重叠地覆盖一个2*n的大矩形，从同一个方向看总共有多少种不同的方法？<br>
+比如n=3时，2*3的矩形块有3种不同的覆盖方法(从同一个方向看)：<br>
+![](../pics/jz70.png)
+
+```cpp
+class Solution {
+public:
+    int rectCover(int number) {
+        /*
+        动态规划：
+        n = 1:1种
+        只能竖着放；
+        n = 2：2种
+        =和||，两种方式，这两种将作为接下来的基础
+        n = 3：3=1+2种
+        当最左边选择=时，余下n=1--->1种
+        当最左边选择|时，余下n=2--->2种
+        n = 4:5=2+3
+        当最左边选择=时，余下n=2--->2种
+        当最左边选择|时，余下n=3--->3种
+        **类似斐波那契数列**
+        */
+        if(number<=2) return number;
+        int prev = 2;
+        int post = 1;
+        int temp;
+        while(number-2){
+            temp = prev+post;
+            post = prev;
+            prev = temp;
+            number--;
+        }return prev;
+        
+        
+    }
+};
+```
+comment:<br>
+有点像找规律。。推出前面的关系，后边的决策和前边有关，这就是动态规划的思想吧
+
+### JZ30 包含min函数的栈
+https://www.nowcoder.com/practice/4c776177d2c04c2494f2555c9fcc1e49?tpId=13&tqId=23268&ru=/ta/sql-quick-study&qru=/ta/sql-quick-study/question-ranking
+
+date: 2021/10/17
+
+
+```cpp
+    stack<int> stk;
+    stack<int> minHelper;
+    
+    void push(int value) {
+        stk.push(value);
+        if(!minHelper.size() || value <= minHelper.top()){
+            minHelper.push(value);
+        }
+    }
+    void pop() {
+        if(stk.top() == minHelper.top()){
+            stk.pop();
+            minHelper.pop();
+        }else{
+            stk.pop();
+        }
+    }
+        int min() {
+        return minHelper.top();
+    }
+```
+
+comment:<br>
+ 看到这个问题, 我们最开始可能会想, 添加一个成员变量用于保存最小元素, 每次压栈时如果压栈元素比当前最小元素更小, 就更新最小元素. 
+ 但是这样会有一个问题, 如果最小元素被弹出了呢, 如何获得下一个最小元素呢? 分析到这里可以发现, 仅仅添加一个成员变量存放最小元素是不够的, 我们需要在最小元素弹出后还能得到次小元素, 次小的弹出后, 还要能得到次次小的. 
+ 因此, 用另一个栈来保存这些元素是再合适不过的了. 我们叫它**最小元素栈**. 
+ 每次压栈操作时, 如果压栈元素比当前最小元素更小, 就把这个元素压入最小元素栈, 原本的最小元素就成了次小元素. 同理, 弹栈时, 如果弹出的元素和最小元素栈的栈顶元素相等, 就把最小元素的栈顶弹出.
+
+
+
+
+
+### JZ35 复杂链表的复制
+https://www.nowcoder.com/practice/f836b2c43afc4b35ad6adc41ec941dba?tpId=13&tqId=23254&ru=/ta/sql-quick-study&qru=/ta/sql-quick-study/question-ranking
+
+date: 2021/10/17
+
+```cpp
+/*
+*解题思路：
+*1、遍历链表，复制每个结点，如复制结点A得到A1，将结点A1插到结点A后面；
+*2、重新遍历链表，复制老结点的随机指针给新结点，如A1.random = A.random.next;
+*3、拆分链表，将链表拆分为原链表和复制后的链表
+*/
+class Solution {
+public:
+    RandomListNode* Clone(RandomListNode* pHead) {
+        if(!pHead) return NULL;
+        
+        RandomListNode* currentNode = pHead;
+        //1、复制每个结点，如复制结点A得到A1，将结点A1插到结点A后面；
+        while(currentNode != NULL){
+            RandomListNode* cloneNode = new RandomListNode(currentNode->label);
+            RandomListNode* nextNode = currentNode->next;
+            currentNode->next = cloneNode;
+            cloneNode->next = nextNode;
+            currentNode = nextNode;
+        }
+        currentNode = pHead;
+        
+        //2、重新遍历链表，复制老结点的随机指针给新结点，如A1.random = A.random.next;
+        while(currentNode != NULL){
+            currentNode->next->random = currentNode->random==NULL?NULL:currentNode->random->next; //妙啊
+            currentNode = currentNode->next->next;
+        }
+        
+        currentNode = pHead;
+        RandomListNode* pCloneHead = pHead->next;
+
+        //3、拆分链表，将链表拆分为原链表和复制后的链表
+        while(currentNode){
+            RandomListNode* cloneNode = currentNode->next;
+            currentNode->next = cloneNode->next;
+            cloneNode->next = cloneNode->next==NULL?NULL:cloneNode->next->next;
+            currentNode = currentNode->next;
+        }
+        
+        return pCloneHead;
+        
+    }
+};
+
+```
+
+comment:<br>
+![](../pics/complexlistnodecopy.png)
+
+
+### JZ31 栈的压入、弹出序列
+https://www.nowcoder.com/practice/d77d11405cc7470d82554cb392585106?tpId=13&tqId=23290&ru=/ta/sql-quick-study&qru=/ta/sql-quick-study/question-ranking
+
+date: 2021/10/06
+```cpp
+class Solution {
+public:
+    bool IsPopOrder(vector<int> pushV,vector<int> popV) {
+        stack<int> temp;
+        int i=0,j=0;
+        while(i<pushV.size()){
+            temp.push(pushV[i]);
+            while(temp.size()&&temp.top()==popV[j]){
+                j++;
+                temp.pop();
+            }
+            i++;
+        }
+        if(!temp.size()) return true;
+        return false;
+    }
+};
+```
+comment:<br>
+之前一直把栈的输入输出原则搞错了。。实际上，栈并不是一定要满了才取出最顶上的元素，随时都可以取出，只要满足FILO即可，因此对于输入序列[1,2,3,4,5]，可以有[3,5,4,2,1]的输出顺序：[1]->[1,2]->[1,2,3]->[1,2]3->[1,2,4]3->[1,2,4,5]3->[1,2,4]3,5->[1,2]3,5,4->[]3,5,4,2,1<br>
+解题思路之一可以是模仿这一过程，借用一个辅助的栈，遍历压栈顺序，先讲第一个放入栈中，这里是1，然后判断栈顶元素是不是出栈顺序的第一个元素，这里是4，很显然1≠4，所以我们继续压栈，直到相等以后开始出栈，出栈一个元素，则将出栈顺序向后移动一位，直到不相等，这样循环等压栈顺序遍历完成，如果辅助栈还不为空，说明弹出序列不是该栈的弹出顺序。举例：入栈1,2,3,4,5 出栈4,5,3,2,1 首先1入辅助栈，此时栈顶1≠4，继续入栈2 此时栈顶2≠4，继续入栈3 此时栈顶3≠4，继续入栈4 此时栈顶4＝4，出栈4，弹出序列向后一位，此时为5，,辅助栈里面是1,2,3此时栈顶3≠5，继续入栈5此时栈顶5=5，出栈5, 弹出序列向后一位，此时为3，,辅助栈里面是1,2,3….依次执行，最后辅助栈为空。如果不为空说明弹出序列不是该栈的弹出顺序。
+
+### 105. Construct Binary Tree from Preorder and Inorder Traversal
+[https://links_to_the_ploblem.com](https://leetcode.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/solution/)
+
+date: 2021/10/16
+
+```cpp
+class Solution {
+public:
+    TreeNode* buildTree(vector<int>& preorder, vector<int>& inorder) {
+        int rootIdx = 0;
+        return build(preorder, inorder, rootIdx, 0, inorder.size()-1);
+    }
+    
+    TreeNode* build(vector<int>& preorder, vector<int>& inorder, int& rootIdx, int left, int right) {
+        if (left > right) return NULL;
+        int pivot = left;  // find the root from inorder
+        while(inorder[pivot] != preorder[rootIdx]) pivot++;
+        
+        rootIdx++;
+        TreeNode* newNode = new TreeNode(inorder[pivot]);
+        newNode->left = build(preorder, inorder, rootIdx, left, pivot-1);
+        newNode->right = build(preorder, inorder, rootIdx, pivot+1, right);
+        return newNode;
+    }
+};
+```
+
+comment:<br>
+前序中序重建二叉树<br>
+https://leetcode.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/discuss/340504/C%2B%2B-simple-recursive-(%2B-detail-explanation)
+
 
 ### 114. Flatten Binary Tree to Linked List
 https://leetcode.com/problems/flatten-binary-tree-to-linked-list/
 
-date: 2021-10-09 21:18
+date: 2021/10/12
+
+
+```cpp
+class Solution {
+public:
+    TreeNode* prev=NULL;
+    
+    void flatten(TreeNode* root) {
+        /*
+        一个想法是，对树进行先序遍历，然后把遍历的历史记录下来，再make一颗对应的树。但是这种方法很傻；
+        考虑到先序递归的节点遍历顺序是1 2 3 4 5 6，那么将其reverse，期待能够有6 5 4 3 2 1的遍历顺序，
+        再相应地将他们的left设为Null，right设为前一个节点即可。
+        抽象思考一下，就像是一根弹性绳被拉到最末端，然后再逐节处理回来
+        */
+        
+        if(root==NULL) return;
+        
+        flatten(root->right);
+        flatten(root->left); 
+        
+        //Let's do something
+        root->left = NULL;
+        root->right = prev; //这里prev的赋值是递归的关键
+        prev = root;
+        
+    }
+};
+```
 
 comment:<br>
-直接看这个题解，反向pre order traversal，很强。自己是用的很傻逼的方法，先先序遍历一边存进数组，在按照这个数组建树。
+https://leetcode.com/problems/flatten-binary-tree-to-linked-list/discuss/36977/My-short-post-order-traversal-Java-solution-for-share
+这题把递归用得好巧妙啊
 
 
 
 ### 110. Balanced Binary Tree
 https://leetcode.com/problems/balanced-binary-tree/
 
-date: 2021-10-09 19:31
+date: 2021/10/09
 
 **二叉树层序遍历标准方法：使用递归（感觉对于树，经常会用到递归呃）**<br>
 有两种方法：
@@ -155,7 +426,7 @@ https://leetcode.com/problems/add-two-numbers/
 
 **[LEETCODE] [Medium] [LinkedList] **
 
-date: 2021-8-14 0:27:00
+date: 2021/08/14
 > description:
 > 
 > You are given two non-empty linked lists representing two non-negative integers. The digits are stored in reverse order, and each of their nodes contains a single digit. Add the two numbers and return the sum as a linked list.
@@ -242,7 +513,7 @@ https://www.luogu.com.cn/problem/P1014
 
 **[LUOGU] [模拟] [枚举，暴力]**
 
-date: 2021-8-14 0:27:00
+date: 2021/08/14
 
 Answer1:
 ```cpp
@@ -297,7 +568,7 @@ https://leetcode.com/problems/remove-duplicates-from-sorted-list/
 
 **[LEETCODE] [Medium] [LinkedList]**
 
-date: 2021-8-16 15:45:00
+date: 2021/08/16
 
 >Description:
 >
@@ -343,7 +614,7 @@ public:
             }else{
                 pred = pred->next; //前方没有duplicate，可以前移
             }
-            head = head->next;
+            head = head->next; //这一步不放在else里是为了保证3344这种情况不会崩（pred不会在34交汇处就前进）
         }
         return sentinel->next; //这里又忽略了虚表头，这样若输入是[1,1,1]，加入虚表头后[0,1,1,1]，计算完[0,'null']，最终返回则是[‘null] 
     }
@@ -381,7 +652,7 @@ https://leetcode.com/problems/flatten-nested-list-iterator/
 
 **[LEETCODE] [Medium] [stack] [queue]**
 
-date: 2021-8-31 10:43:00
+date: 2021/08/31
 
 >Description:
 >
@@ -473,7 +744,7 @@ https://leetcode.com/problems/recover-binary-search-tree/
 
 **[LEETCODE] [Medium] [tree]**
 
-date: 2021-10-08 19:54:00
+date: 2021/10/08
 ```cpp
 class Solution {
 public:
@@ -520,7 +791,7 @@ https://leetcode.com/problems/binary-tree-level-order-traversal/
 
 **[LEETCODE] [Medium] [tree]**
 
-date: 2021-10-09 10:47:00
+date: 2021/10/09
 ```cpp
 class Solution {
 public:
