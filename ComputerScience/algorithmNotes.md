@@ -25,7 +25,8 @@ https://books.halfrost.com/leetcode/ChapterTwo/Linked_List/
 ### 目录：
 
   - [0. TEMPLATE]()
-  - [### JZ40 最小的K个数](#jz40-最小的k个数)
+  - [NC61 两数之和](#nc61-两数之和)
+  - [JZ40 最小的K个数](#jz40-最小的k个数)
   - [JZ30 包含min函数的栈](#jz30-包含min函数的栈)
   - [JZ35 复杂链表的复制](#jz35-复杂链表的复制)
   - [JZ31 栈的压入、弹出序列](#jz31-栈的压入弹出序列)
@@ -52,6 +53,28 @@ SOLUTION!
 
 comment:<br>
 你的心得blablabla
+
+### NC61 两数之和
+https://www.nowcoder.com/practice/20ef0972485e41019e39543e8e895b7f?tpId=117&&tqId=37756&rp=1&ru=/activity/oj&qru=/ta/job-code-high/question-ranking
+
+date: 2021/10/19
+
+```cpp
+vector<int> twoSum(vector<int>& numbers, int target) {
+        // write code here
+        unordered_map<int, int> m;
+        for(int i=0; i< numbers.size(); i++){
+            if(m.find(target - numbers[i]) != m.end())
+                //没找到：返回unordered_map::end
+                return{m[target-numbers[i]], i+1};
+            m[numbers[i]] = i+1;
+        }
+        return{-1,-1};
+    }
+```
+
+comment:<br>
+绝了，用hash map来做
 
 ### JZ40 最小的K个数
 https://www.nowcoder.com/practice/6a296eb82cf844ca8539b57c23e6e9bf?tpId=13&tqId=23263&ru=/ta/sql-quick-study&qru=/ta/sql-quick-study/question-ranking
