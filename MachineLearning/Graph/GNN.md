@@ -39,7 +39,7 @@ categories:
 这一步实际上叫做**聚合(aggregation)**
 ![](../../pics/tw_gnn1.png)<br>
 
-Readout(估计是把聚合的不同阶段的图来做一个加权平均？但是一个值又能表示什么。。。不太理解)：<br>
+Readout：<br>
 ![](../../pics/tw_gnn2.png)<br>
 
 ##### **DCNN(Diffusion-Convolution Neural NEtwork)**
