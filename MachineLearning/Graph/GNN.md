@@ -39,14 +39,14 @@ categories:
 这一步实际上叫做**聚合(aggregation)**
 ![](../../pics/tw_gnn1.png)<br>
 
-Readout(估计是把聚合的不同阶段的图来做一个加权平均？但是一个值又能表示什么。。。不太理解)：<br>
+Readout：<br>
 ![](../../pics/tw_gnn2.png)<br>
 
 ##### **DCNN(Diffusion-Convolution Neural NEtwork)**
 在这个图中，蓝色层和红色层和之后的层的节点数据来源都是初始的黄色层，这里d(3,·) = 1的意思是和3号节点距离为1的所有点，也就是说上标越大，他聚合的就是越远的信息：<br>
 ![](../../pics/tw_gnn3.png)<br>
 
-这样处理K次就可以得到K层的H矩阵，里面包含了每一次的h<sub>i<sub>的信息：<br>
+这样处理K次就可以得到K层的H矩阵，里面包含了每一次的h<sub>i</sub>的信息：<br>
 ![](../../pics/tw_gnn4.png)<br>
 
 然后乘以权重，得到节点的feature：<br>
@@ -102,7 +102,7 @@ $Lf = (D-A)f = Df-Af$
 
 ![](../../pics/tw_gnn14.png)
 
-这里的D~就是加上I<sub>N<sub>之后的D(Dgree Matrix,连接度矩阵)，也就是说如果不是1的话就把他变成1，加了一个self-loop(自环，防止失去自我，后边求和时不仅要加上邻居还要加上自己)，H是上一层的输出，W是权重，A是adjacent matrix，邻接矩阵。
+这里的D~就是加上I<sub>N</sub>之后的D(Dgree Matrix,连接度矩阵)，也就是说如果不是1的话就把他变成1，加了一个self-loop(自环，防止失去自我，后边求和时不仅要加上邻居还要加上自己)，H是上一层的输出，W是权重，A是adjacent matrix，邻接矩阵。
 
 化简之后就是这样：把这个节点的所有邻居（包括他自己，self-loop）全部乘上权重后取平均，再加上一个偏置b，然后过一个激活函数：<br>
 ![](../../pics/tw_gnn15.png)
@@ -114,7 +114,6 @@ Summary
 - GAT and GCN are the most popular GNNs
 - Although GCN is mathematically driven, we tend to ignore its math
 - GNN (or GCN) suffers from information lose while getting deeper
--
 - Many deep learning models can be slightly modified and designed to fit graph data, such as Deep Graph InfoMax, Graph Transformer, GraphBert.
 - Theoretical analysis must be dealt with in the future
 - GNN can be applied to a variety of tasks
