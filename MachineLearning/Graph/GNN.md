@@ -148,6 +148,100 @@ Summary
 
 
 
+### 代码测试
+
+今天花了好久时间配环境（主要还是torch_scatter这些库的版本依赖关系太麻烦），而且有的直接从源码编译一直报错，最后还是通过直接安装whl文件成功渡劫，没在上面卡住。
+
+代码稍微修改一下就能跑，但是不知是不是学长的python版本不同的原因，准确率一直是0，最后发现是evaluate函数的除法有问题。在python3中是默认整除，因此小于0的小数就直接变成0了，在分母乘上1.0即可。
+
+
+学长原版代码：
+```python
+    def forward(self, data):
+        x = data.x
+        x = F.dropout(x, p=0.6, training=self.training)
+        x = F.relu(self.conv1(x,data.edge_index))
+        x = F.dropout(x, p=0.6, training=self.training)
+        x = self.conv2(x,data.edge_index)
+        #x = F.relu(self.conv(x,data.edge_index))
+        #x = self.conv(x,data.edge_index)
+        return F.log_softmax(x,dim=1)
+```
+result(avg_acc = 0.56):
+```cpp
+runfile('L:/A_Simple_Project/sample.py', wdir='L:/A_Simple_Project')
+0.54780704
+runfile('L:/A_Simple_Project/sample.py', wdir='L:/A_Simple_Project')
+0.55899125
+runfile('L:/A_Simple_Project/sample.py', wdir='L:/A_Simple_Project')
+0.552193
+runfile('L:/A_Simple_Project/sample.py', wdir='L:/A_Simple_Project')
+0.56513155
+runfile('L:/A_Simple_Project/sample.py', wdir='L:/A_Simple_Project')
+0.5585526
+runfile('L:/A_Simple_Project/sample.py', wdir='L:/A_Simple_Project')
+0.5736842
+runfile('L:/A_Simple_Project/sample.py', wdir='L:/A_Simple_Project')
+0.5482456
+runfile('L:/A_Simple_Project/sample.py', wdir='L:/A_Simple_Project')
+0.5578947
+runfile('L:/A_Simple_Project/sample.py', wdir='L:/A_Simple_Project')
+0.5539473
+runfile('L:/A_Simple_Project/sample.py', wdir='L:/A_Simple_Project')
+0.5447368
+```
+
+稍微改了一下（改了一点点），性能有一丁点提升：
+```python
+    def forward(self, data):
+        
+        x, edge_index = data.x, data.edge_index
+        x = self.conv1(x,data.edge_index)
+        x = F.relu(x)
+        x = F.dropout(x, training=self.training)
+        x = self.conv2(x, edge_index)
+        
+        return F.log_softmax(x,dim=1)
+```
+
+result(avg_acc = 0.5776)：
+```python
+runfile('L:/A_Simple_Project/sample.py', wdir='L:/A_Simple_Project')
+0.5620614
+runfile('L:/A_Simple_Project/sample.py', wdir='L:/A_Simple_Project')
+0.5923246
+runfile('L:/A_Simple_Project/sample.py', wdir='L:/A_Simple_Project')
+0.57061404
+runfile('L:/A_Simple_Project/sample.py', wdir='L:/A_Simple_Project')
+0.5877193
+runfile('L:/A_Simple_Project/sample.py', wdir='L:/A_Simple_Project')
+0.5725878
+runfile('L:/A_Simple_Project/sample.py', wdir='L:/A_Simple_Project')
+0.585307
+runfile('L:/A_Simple_Project/sample.py', wdir='L:/A_Simple_Project')
+0.56885964
+runfile('L:/A_Simple_Project/sample.py', wdir='L:/A_Simple_Project')
+0.5796052
+runfile('L:/A_Simple_Project/sample.py', wdir='L:/A_Simple_Project')
+0.5828947
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
