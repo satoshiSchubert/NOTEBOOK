@@ -25,6 +25,7 @@ https://books.halfrost.com/leetcode/ChapterTwo/Linked_List/
 ### 目录：
 
   - [0. TEMPLATE]()
+  - [### 146. LRU Cache](#146-lru-cache)
   - [NC61 两数之和](#nc61-两数之和)
   - [JZ40 最小的K个数](#jz40-最小的k个数)
   - [JZ30 包含min函数的栈](#jz30-包含min函数的栈)
@@ -53,6 +54,74 @@ SOLUTION!
 
 comment:<br>
 你的心得blablabla
+
+### 146. LRU Cache
+https://leetcode.com/problems/lru-cache/submissions/
+
+date: 2021/10/27
+
+
+```cpp
+class LRUCache {
+private:
+    // 这里typedef AA<B> C可以理解成用C作为AA<B>的别名
+    typedef list<int> LI; //维护一个list,存储的是key信息
+    typedef pair<int, LI::iterator> PII; //桥接hashmap和list，其实也可以省略这一步，直接unordered_map<int, <int, LI::iterator>>
+    typedef unordered_map<int, PII> HTPII;//<key, pair<value, list>>
+    
+    LI history;
+    HTPII map;
+    int _capacity;
+    
+    void touch(HTPII::iterator it){
+        // it: <int, PII>
+        int key = it->first;
+        history.erase(it->second.second);
+        history.push_front(key);
+        //记得更新map的对应history的内容!
+        it->second.second = history.begin();
+    }    
+public:
+    LRUCache(int capacity):_capacity(capacity) {}
+    
+    int get(int key) {
+        auto it = map.find(key);
+        if(it == map.end()) return -1;
+        touch(it);
+        return map[key].first;
+    }    
+    void put(int key, int value) {
+        auto it = map.find(key);
+        // 先更新一下key的历史记录
+        if(it != map.end())
+            touch(it);
+        else{
+            if(map.size() == _capacity){
+                map.erase(history.back()); //history.back()是一个key值
+                history.pop_back();
+            }
+            history.push_front(key);
+        }
+        //然后存value
+        map[key] = {value, history.begin()};
+    }  
+};
+/**
+ * Your LRUCache object will be instantiated and called as such:
+ * LRUCache* obj = new LRUCache(capacity);
+ * int param_1 = obj->get(key);
+ * obj->put(key,value);
+ */
+```
+
+comment:<br>
+https://leetcode.com/problems/lru-cache/discuss/45976/C%2B%2B11-code-74ms-Hash-table-%2B-List<br>
+idea是维护一个list（也就是双向链表），和一个hash表。<br>
+对于哈希表中的每一个key，他都对应一组pair<value, iter_of_list>，然后每次touch这个key之后都要在list（list的值存的就是key）中更新历史<br>
+这里补充一下list和vector的区别：<br>
+- 如果需要高效的随机存取，而不在乎插入和删除的效率，使用vector;
+- 如果需要大量的插入和删除，而不关心随机存取，则应使用list。
+
 
 ### NC61 两数之和
 https://www.nowcoder.com/practice/20ef0972485e41019e39543e8e895b7f?tpId=117&&tqId=37756&rp=1&ru=/activity/oj&qru=/ta/job-code-high/question-ranking
