@@ -1,5 +1,18 @@
-# (Note)Learning Semantic-Specific Graph Representation for Multi-Label Image Recognition
-  
+---
+title: 双鸭山入组考核
+date: UNKNOWN
+tags:
+- Projects
+categories:
+- Projects&Assignments
+---
+
+<p align='center'>
+<a href="https://github.com/satoshiSchubert" target="_blank"><img src="https://img.shields.io/badge/Github-@SatoshiNg-f3e1e1.svg?style=flat-square&logo=GitHub"></a>
+<img src='https://img.shields.io/badge/style-Chinese-c45a65.svg?style=flat-square' />
+
+# Learning Semantic-Specific Graph Representation for Multi-Label Image Recognition
+---
 ## 论文阅读记录
 
 原文：

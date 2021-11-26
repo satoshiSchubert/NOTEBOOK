@@ -1,6 +1,17 @@
-Kalman_Filter
-===========================
-卡尔曼滤波的基本原理和代码实现(python)。
+---
+title: Kalman Filter
+date: UNKNOWN 
+tags:
+- ControlTheory
+categories:
+- Cybernetics
+---
+
+<p align='center'>
+<a href="https://github.com/satoshiSchubert" target="_blank"><img src="https://img.shields.io/badge/Github-@SatoshiNg-f3e1e1.svg?style=flat-square&logo=GitHub"></a>
+<img src='https://img.shields.io/badge/style-Chinese-c45a65.svg?style=flat-square' />
+
+# 卡尔曼滤波的基本原理和代码实现(python)
 
 ### 通俗易懂的卡尔曼滤波推导和解释：
 https://www.zhihu.com/question/23971601?sort=created
