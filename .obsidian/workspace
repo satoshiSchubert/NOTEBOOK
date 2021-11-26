@@ -1,10 +1,10 @@
 {
   "main": {
-    "id": "8268790e73d6d08c",
+    "id": "14c08776d7b23e6a",
     "type": "split",
     "children": [
       {
-        "id": "c2a615abdcc48d3b",
+        "id": "05af094bcdaa87ae",
         "type": "leaf",
         "state": {
           "type": "empty",
@@ -82,7 +82,7 @@
     "width": 300,
     "collapsed": true
   },
-  "active": "c2a615abdcc48d3b",
+  "active": "05af094bcdaa87ae",
   "lastOpenFiles": [
     "dataStructure.md",
     "deep_into_operating_system_tsinghua.md",
