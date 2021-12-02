@@ -31,7 +31,7 @@ http://groups.csail.mit.edu/graphics/classes/6.837/F04/index.html
   - [0. Iterated Function Systems](#0-iterated-function-systems)
   - [1. Ray Casting](#1-ray-casting)
   - [2. Transformations](#2-transformations)
-  - [3. Phong_Shaing](#3-phong_shaing)
+  - [3. Phong_Shading](#3-phong_shading)
   - [4. Shadows, Reflection & Refraction](#4-shadows-reflection--refraction)
   - [5. Voxel Rendering](#5-voxel-rendering)
   - [6. Grid Acceleration & Solid Textures](#6-grid-acceleration--solid-textures)
@@ -44,155 +44,116 @@ http://groups.csail.mit.edu/graphics/classes/6.837/F04/index.html
 ---
 ### 0. Iterated Function Systems
 
-产生 num 个随机点，经过 iters 次矩阵（随机选取）变换，保存到图片中对应位置。 
-
 
 
 ### 1. Ray Casting
 
-实现 Algebraic 和 Geometric 两种方法计算球体交点。
-
-**注意点1：**
-
-不要 delete 同一片内存两次，不需要在 ~Object3D() 中 delete material; 因为 material 申请内存的操作由  ~SceneParser() 负责。
-
-
-**注意点2：**
-
-image 对应于（0, 200）和比例（0, 1）。
-
-OrthographicCamera 的 center 在（0, 0），因此产生的光线对应于 （-1, 1）* size。
-
-**注意点3：**
-
-error: multiple definition of 函数多次定义，当某些辅助函数作为全局函数且在 .h 文件中时会发生。
-
-办法一：把这些函数定义在 .cpp 文件中，但同名函数也只能定义一份。
-
-办法二：把这些函数作为类内函数。
-
-**注意点4：**
-
-在使用 Geometric 法计算交点时，为了得到与样例相符的图片，忽略 t 是否在视线后面，即 camera center 是否在球体内部，永远取 t = min(t1, t2)。
 
 
 
 ### 2. Transformations
 
-**注意点1：**
-
-三角形计算交点可以使用 Matrix.cpp 中的 det3x3。
-
-**注意点2：**
-
-把 rd 从 world-space 转换到 object-space 的时候不要 normalize()。
-
-**注意点3：**
-
-scene_16
 
 
-### 3. Phong_Shaing
+### 3. Phong_Shading
 
-**注意点1：**
+**记录点1：**
 
-Phong 与 BlinnPhong 的区别在于，前者在 v, l 同向时且 exponent 较小的时候，会产生明显的断层现象。
+安装openGL时就碰到问题了，估计是dll文件一直没法链接上去，卡了半天。。
 
-**注意点2：**
+[OpenGL+VS2017 环境配置(亲测好使)::附带必要知识点](https://blog.csdn.net/AvatarForTest/article/details/79199807?spm=1001.2101.3001.6650.2&utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-2.no_search_link&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-2.no_search_link)
 
-OpenGL 画球体中，phi_steps 作为纬度的步长，取到首尾， theta_steps 作为经度的步长，取首不取尾。把球体定义为 quad，比定义为 triangle 简单。
+- OpenGL只提供声明不提供实现，实现由各大硬件厂商完成
+- 库文件(lib)和头文件/包含文件(include)是相辅相成的
 
-**注意点3：**
+.lib, .dll这些文件的区别：
+[关于lib文件的介绍](https://blog.csdn.net/m0_37876745/article/details/78323848?utm_medium=distribute.pc_relevant.none-task-blog-2~default~baidujs_baidulandingword~default-0.no_search_link&spm=1001.2101.3001.4242.1)
 
-Flat shading (visible facets)  使用 quad 的 normal，quad 是一个平面，因此产生可见面。
+>dll其实就是exe，只不过它没有main函数，所以不能单独执行而已。
 
+最后还是参考了fuzhanzhan大神的代码，直接用了他的GL文件，只要在项目中设置好include和lib的路径就好了（记得lib还得加上glut32.lib，电脑里没有就去网上下一个）
+
+**记录点2：**
+
+需要实现Blinn_Torrance版本的phong模型。
+
+![](../pics/blinntorrance.png)
+
+公式：
+
+$\mathbf{h}=\frac{\mathbf{I}+\mathbf{v}}{\|\mathbf{I}+\mathbf{v}\|}$
+
+$L_{o}=(k_{d}(\mathbf{n} \cdot \mathbf{l})+k_{s}(\mathbf{n} \cdot \mathbf{h})^{q}) \frac{L_{i}}{r^{2}}$
+
+由于assignment3中使用的不是点光源，因此可以忽略r<sup>2</sup>项。
+
+**记录点3：**
 
 
 
 ### 4. Shadows, Reflection & Refraction
 
-**注意点1：**
-
-正交相机判断阴影的方法，设 tmin = 0.0001f; 而不是 getTmin() + 0.0001f;
-
-**注意点2：**
-
-使用 OpenGL previsualization，能够找出大部分关于反射和折射的问题，在 scene4_07 8 9 涉及球体的内部反射折射问题，只能使用 Algebraic 算法来求交点，Geometric 法求交会减少射线的产生，发生错误。
-
-**注意点3：**
-
-RayTracer::traceRay(Ray &ray, float tmin, int bounces, float weight, Hit &hit);
-
-**注意点4：**
+**记录点1：**
 
 
 
-**注意点5：**
+**记录点2：**
 
-tmin 这个数据其实可以设置在 hit 类中，但由于延续课程的风格，就放在函数参数中了。
+
+**记录点3：**
+
+
+**记录点4：**
+
+
+
+**记录点5：**
+
 
 
 
 ### 5. Voxel Rendering
 
-**注意点1：**
+**记录点1：**
 
 
 
-**注意点2：**
+**记录点2：**
 
 
-**注意点3：**
+**记录点3：**
 
 
 
-**注意点4：**
+**记录点4：**
 
 
 
 
 ### 6. Grid Acceleration & Solid Textures
 
-**注意点1：**
+**记录点1：**
 
 
 
 
 ### 7. Supersampling and Antialiasing
 
-**注意点1：**
-
- Gaussian filter 中，令  sigma  = radius，为了得到正确的结果，取消 d > 2 * sigma 的判断。
-
-**注意点2：**
-
-Filter::getColor 中，要计算所有在 getSupportRadius() 范围内的像素的采样，另外要求总 weight = 1。
-
-**注意点3：**
-
-渲染 scene7_03_marble_vase.txt 的最后一幅图时，在 Sampler类中，若 d = 1.0f / (size + 1);  会触发
-
+**记录点1：**
 
 
 
 
 ### 8. Curves & Surfaces
 
-**注意点1：**
+**记录点1：**
 
- *B* 矩阵可以作为 static 变量写在 Spline 类中。
-
-**注意点2：**
-
-注意 TriangleNet 的初始化和顶点的设置。
-
-**注意点3：**
 
 
 
 ### 9. Particle Systems
 
-**注意点1：**
+**记录点1：**
 
 
 
