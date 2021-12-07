@@ -81,13 +81,21 @@ http://groups.csail.mit.edu/graphics/classes/6.837/F04/index.html
 
 公式：
 
-$\mathbf{h}=\frac{\mathbf{I}+\mathbf{v}}{\|\mathbf{I}+\mathbf{v}\|}$
+$\mathbf{h}=\frac{\mathbf{I}+\mathbf{v}}{\|\mathbf{I}+\mathbf{v}\|}$ （这一步实际上就是标准化Normalize，因此可以直接调用函数，不必用Devide）
 
 $L_{o}=(k_{d}(\mathbf{n} \cdot \mathbf{l})+k_{s}(\mathbf{n} \cdot \mathbf{h})^{q}) \frac{L_{i}}{r^{2}}$
 
 由于assignment3中使用的不是点光源，因此可以忽略r<sup>2</sup>项。
 
 **记录点3：**
+
+球坐标的换算：
+
+![](../pics/meshsph1.png)
+
+
+
+
 
 
 
