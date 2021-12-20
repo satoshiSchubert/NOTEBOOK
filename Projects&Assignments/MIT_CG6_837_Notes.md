@@ -158,6 +158,99 @@ http://groups.csail.mit.edu/graphics/classes/6.837/F04/index.html
     第九张图片不知为何无法生成tga图像，但是openGL是正常的。
 
 ## A4. Shadows, Reflection & Refraction
+---
+
+### 原理
+
+1. Ray Casting 和 Rendering Pipeline的区别
+   
+   我的理解是，这是两种计算模式？
+
+   - Ray Casting：
+     ```python
+     for each pixel:
+         for each object:
+     ```
+   - Rendering Pipeline:
+     ```python
+     for each triangle:
+         for each pixel:
+     ```
+
+    ![](../pics/raycastingrenderpipeline.jpg)
+
+    ![](../pics/rcandrp2.jpg)
+
+2. Shadows
+   
+   先考虑引入了Phong Shading的Ray Casting：
+   
+   ```python
+   #当你已经找到了最近的hit point时
+   color = ambient*hit->getMaterial()->getDiffuseColor()
+   for every light
+        #对于每个光源，都分别计算并累加Shade颜色
+        color += hit->getMaterial()->Shade(ray,hit,direction,lightColor)
+    return color
+   ```
+   复杂度：$O(n*m*l)$,其中l=num of lights
+
+   那么如何添加阴影呢？
+
+    ```python
+   #当你已经找到了最近的hit point时
+   color = ambient*hit->getMaterial()->getDiffuseColor()
+   # 对于每个光源
+   for every light
+        // ========CHANGE========
+        #初始化一个从Hit点到光源的射线
+        Ray ray2(hitPoint,directionToLight)
+        #初始化一个t等于hitpoint到光源的距离的Hit
+        Hit hit2(distanceToLight, NULL, NULL)
+        #对于在场的所有物体（实际上只关注ray2光路上的物体）
+        for every object:
+            #迭代intersect
+            object->intersect(ray2,hit2,0)
+        #如果迭代之后t仍然还等于distanceToLight
+        #也就是ray2光路上没有其他的阻碍物
+        #这时候才更新Shade，否则就只留有ambient
+        #（因为从光源到这个hitpoint之间有东西挡着）
+        if(hit2->getT()=distanceToLight):
+        // ========CHANGE========
+            color += hit->getMaterial()->Shade(ray,hit,direction,lightColor)
+    return color
+   ```
+   
+   配图：注意橙色箭头和太阳之间有个物体阻挡。
+
+   ![](../pics/shadow1.jpg)
+
+   问题：自阴影（self-shadowing）--需要在计算intersect的时候添加一个epsilon（估计是增加容错率？）
+
+   **这个epsilon现在还没搞懂是啥**
+
+   ![](../pics/shadow2.jpg)
+
+   **Shadow Optimization**如何提高shadow的计算效率呢？在检测ray2光路的交点时，只需要知道是否有其他交点，而不需要知道哪个交点最近
+
+   这就需要写一个新的routine：``Object3D::intersectShadowRay()``
+   and it stops at first intersection.
+
+3. Mirror Reflection
+   
+   最基本的：入射角等于反射角。
+   $$
+   R=V-2(V·N)N
+   $$
+
+   ![](../pics/reflection1.jpg)
+
+   
+
+
+   
+
+
 
 **记录点1：**
 

@@ -60,3 +60,5 @@ https://www.luogu.com.cn/problem/P1014
 数学符号：
 
 https://blog.csdn.net/weixin_30994847/article/details/112216878
+
+行内公式：$O(m·n)$
