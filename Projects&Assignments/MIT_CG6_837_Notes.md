@@ -468,19 +468,6 @@ bool Sphere::intersect(const Ray &r, Hit &h, float tmin) {
 这样，delta>0但是却没有更新交点的情况也会被判为false。
 
 
-
-**记录点3：**
-
-
-**记录点4：**
-
-
-
-**记录点5：**
-
-
-
-
 ## A5. Voxel Rendering
 
 **记录点1：**
