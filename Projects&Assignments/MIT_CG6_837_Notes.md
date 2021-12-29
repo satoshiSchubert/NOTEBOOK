@@ -388,15 +388,85 @@ http://groups.csail.mit.edu/graphics/classes/6.837/F04/index.html
     }
    ```
 
-  
+
+6. Plane的intersect()部分DEBUG
+
+    画第一个图的时候，我画出来的阴影总是不对，如下所示
+
+    正常：
+
+    ![](../pics/errorplane1.jpg)
+
+    而我画出来的:
+
+    ![](../pics/errorplane2.jpg)
+
+    乍一看，（抛开球体没有上色不谈）阴影的投影好像没有什么大问题，但是和示例比起来可以发现球体的底部和平面有切割，且阴影也偏扁平，直观上看起来**似乎平面和球的距离变小了**。
+
+    但是经过长时间的排查，排除了camera，light等等的原因，最后把问题定位在plane的intersect()函数上。经过对比公式，发现计算t的式子出现了一点错误(但是之前两次作业竟然一直都没发现！)，直到这次计算投影时才发现：
+
+    原代码：
+
+    ```cpp 
+    float t = (_d - _v_norm.Dot3(Rd)) / denom;
+    ```
+
+    实际上正确的代码：
+
+    ```cpp 
+    float t = (_d - _v_norm.Dot3(Ro)) / denom;
+    ```
+
+    对应的计算公式：
+
+    ![](../pics/errorplane3.jpg)
 
 
 
-**记录点1：**
+7. Sphere的intersection()部分DEBUG
 
+画阴影的时候，球体的颜色无法正常显示，也被当成阴影处理了，因此显示出来的颜色和底色一样（如上图）。刚开始考虑是没有添加epsilon，以致球面和自己相交，被误判定为阴影，后来通过不断debug，发现问题出在基础的object3d模块上，Sphere类的intersect()函数有问题：
 
+第一个问题在于intersect()中更新hit的操作。之前更新hit是直接令`h = Hit(t, _material, v_norm);`，并且也没有出现什么问题，前两次作业的结果都是OK的（因此这次作业也很难想到是这些基础模块出问题）。实际上，这里必须要用`h.set(t, _material, v_norm, r)`，不能新创建一个Hit并赋值，因为set函数中会根据ray内部设置intersectionPoint = ray.pointAtParameter(t)，而这个intersectionPoint又会在raytracer.cpp `Vec3f hitPoint = hit.getIntersectionPoint()` 中被调用，因此，如果没有设置，则无法正常调用并生成hitPoint，后面的ray_shadows也就会是错误的。虽然问题出在sphere的intersect()函数中，但是因为画shadow时在一个像素routine中会循环调用多次intersect()，所以很难打印t来发现问题。
 
-**记录点2：**
+第二个问题则是出在intersect()本身的if else结构上。<br>
+之前的结构如下：
+
+```cpp
+bool Sphere::intersect(const Ray &r, Hit &h, float tmin) {
+	...
+	if (delta < 0)
+		// No hit.
+		return false;
+	float t = INFINITY ; //t的初始值应该是无限远！
+	...
+	if (t < h.getT() && t >= 0) {//closer当前交点，更新
+		Vec3f v_norm = Vec3f(r.pointAtParameter(t), _center);
+		v_norm.Normalize();
+		h = Hit(t, _material, v_norm);
+	}
+	return true;
+```
+这种结构下，只要是delta>0的，不论是否`t < h.getT()`，最后都会return true，但是实际上会出现delta>0(有成功相交)但是并没有更新交点hit的情况，这种情况也应该是return false的。
+
+修改后：
+
+```cpp
+bool Sphere::intersect(const Ray &r, Hit &h, float tmin) {
+	...
+	if (delta >= 0) {
+		...
+		if (t < h.getT()) {//closer当前交点，更新
+			Vec3f v_norm = Ro + t * Rd;
+			v_norm.Normalize();
+			h.set(t, _material, v_norm, r);
+			return true;
+		}
+	}
+	return false;
+```
+这样，delta>0但是却没有更新交点的情况也会被判为false。
+
 
 
 **记录点3：**
