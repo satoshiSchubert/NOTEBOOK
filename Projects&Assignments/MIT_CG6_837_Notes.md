@@ -661,8 +661,109 @@ bool Sphere::intersect(const Ray &r, Hit &h, float tmin) {
     关键在于给定num_samples下每个sample的位置。计算位置的代码如下：
 
     ```cpp
+    	UniformSampler(int num_samples) :Sampler(num_samples) {
+		size = sqrt(num_samples);
+		d = 1.f / (size + 1);
+	}
 
+	virtual Vec2f getSamplePosition(int n) {
+		if (n_samples == 1)
+			return Vec2f(0.f, 0.f);
+		return Vec2f((n%size + 1)*d, (n/size + 1)*d);
+	}
     ```
+
+    ![](../pics/a702.png)
+
+    **散点采样（jittered sampling）**
+
+    个人认为这种采样的效果最好。他的原理是在整齐采样的基础上加随机扰动，但是相比随机采样又更均匀一些。
+
+    代码如下：
+
+    ```cpp
+    JitteredSampler(int num_samples) :Sampler(num_samples) {
+		size = sqrt(num_samples);
+		d = 0.9999f / (size + 1);//这里分子0.9999是为了防止越界问题
+	}
+
+	virtual Vec2f getSamplePosition(int n) {
+		if (n_samples == 1)
+			return Vec2f(0.f, 0.f);
+		return Vec2f(((n%size + 1)*d + ((2.f*rand() / RAND_MAX)*d - 1.f*d)), (n / size + 1)*d + ((2.f*rand() / RAND_MAX)*d - 1.f*d));
+	}
+    ```
+
+    ![](../pics/a703.png)
+
+2. 滤波
+
+    是的，就是数字图像处理中的滤波。这里分别使用了Box滤波（框内为1，框外为0）、Tent滤波（从中心向四周线性减少）和高斯滤波。
+
+    **Box Filter**
+
+    ```cpp
+    // BoxFilter: if pixel is inside radius,return 1,otherwise return 0.
+    float BoxFilter::getWeight(float x, float y) {
+	
+	if (fabs(x) > radius || fabs(y) > radius) {
+		return 0;
+	}
+	return 1;
+    }
+    ```
+
+    **Tent Filter**
+
+    ```cpp
+    // TentFilter: y = 1-x(y>0)
+    float TentFilter::getWeight(float x, float y) {
+	float dist = sqrt(x*x + y * y);
+	if (dist > radius) return 0;
+	return 1 - dist / radius;
+    }
+    ```
+
+    **Gaussian Filter**
+
+    ```cpp
+    // Gaussian
+    float GaussianFilter::getWeight(float x, float y) {
+	float d2 = x * x + y * y;
+	float d = sqrt(d2);
+	float sigma = 1.f*radius;
+	if (d > 2 * sigma)
+		return 0;
+	float upper = (-1.f*d2) / (2.f*sigma*sigma);
+	return pow(2.718281828, upper);
+    }
+    ```
+
+    三者效果对比：
+
+    ![](../pics/a704.png)
+
+3. 最终的抗锯齿效果：
+
+    1. 6.837 Logo
+
+        抗锯齿前：
+
+        ![](../pics/a705.png)
+
+        jittered sampling + gaussian filter:
+
+        ![](../pics/a706.png)
+
+    2. 球
+
+        抗锯齿前：
+
+        ![](../pics/a707.png)
+
+        jittered sampling + gaussian filter:
+
+        ![](../pics/a708.png)
 
 
 
@@ -670,11 +771,74 @@ bool Sphere::intersect(const Ray &r, Hit &h, float tmin) {
 
 ## A8. Curves & Surfaces
 
-**记录点1：**
+1. Bezier曲线的生成算法
 
-https://blog.csdn.net/weixin_42465397/article/details/105405355
+    看6.837的ppt看得实在有点不明所以，csdn上找了个中文教程一看就懂了：
 
-+代码解释（GBT）
+    https://blog.csdn.net/weixin_42465397/article/details/105405355
+
+    关键在于，求贝塞尔曲线实际上就是不断求等比例点。Bezier曲线上的任一个点p(t)，都是其它相邻线段的同等比例(t)点处的连线，再取同等比例(t)的点再连线，一直取到最后那条线段的同等比例(t)处，该点就是Beizer曲线上的点(t)。因此，可以用循环迭代的方法求：
+
+    ![](../pics/a720.png)
+
+    在作业中，主要是根据下面这个公式来求贝塞尔曲线。每一次迭代都用矩阵乘法来表示。
+
+    $$
+    Q(t)=G_{\text {bezier }} B_{\text {bezier }} T=G_{\text {bspline }} B_{\text {bspline }} T
+    $$
+
+    代码实现：
+
+    ```cpp
+    void BezierCurve::drawCurves(ArgParser *args) {
+	glLineWidth(3);
+	glColor3f(0, 1, 0);
+	glBegin(GL_LINE_STRIP);
+	int tessellation = args->curve_tessellation;
+	float d = 1.f / tessellation;
+	for (int i = 0; i < num_vertices - 3; i += 3) {
+		Matrix P;
+		for (int j = 0; j < 4; j++) {
+			P.Set(j, 0, vertices[i + j].x());
+			P.Set(j, 1, vertices[i + j].y());
+			P.Set(j, 2, vertices[i + j].z());
+		}
+		for (int j = 0; j <= tessellation; j++) {
+			//步进 t，单位长度为d
+			float t = d * j;
+			float t2 = t * t;
+			float t3 = t2 * t;
+			Vec4f T(t3, t2, t, 1);
+			Bezier_Matrix.Transform(T);
+			P.Transform(T);// Q(t) = G * B * T,这里G就是P
+			//现在T已经是最后的计算结果Q(t)了。
+			glVertex3f(T.x(), T.y(), T.z());
+		}
+	}
+	glEnd();
+    }
+    ```
+
+    通过$G_{Bezier}$生成$G_{Bspline}$：简单的矩阵运算
+
+    ```cpp
+    void BezierCurve::OutputBSpline(FILE *file) {
+	fprintf(file, "\n");
+	fprintf(file, "bspline\nnum_vertices %d\n", num_vertices);
+	Matrix P;
+	for (int i = 0; i < num_vertices; ++i) {
+		P.Set(i, 0, vertices[i].x());
+		P.Set(i, 1, vertices[i].y());
+		P.Set(i, 2, vertices[i].z());
+	}
+	Matrix inv_BSpline_Matrix = BSpline_Matrix;
+	inv_BSpline_Matrix.Inverse();
+	Matrix res = P * Bezier_Matrix * inv_BSpline_Matrix;//求Gbspline
+	for (int i = 0; i < num_vertices; ++i) {
+		fprintf(file, "%f %f %f\n", res.Get(i, 0), res.Get(i, 1), res.Get(i, 2));
+	}
+    }
+    ```
 
 
 ## A9. Particle Systems
