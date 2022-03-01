@@ -642,7 +642,28 @@ bool Sphere::intersect(const Ray &r, Hit &h, float tmin) {
 
 ## A7. Supersampling and Antialiasing
 
-**记录点1：**
+主要分为两部分，一部分是采样，另一部分是滤波。
+
+在进行逐个计算时，一定要注意越界的情况，以及虚函数默认情况下的返回值
+
+1. 采样
+
+    作业中实现了三个采样方法，分别是随机采样，整齐采样和散点采样（jittered sampling）.
+    
+    **随机采样,Random Sampler：**
+
+    使用rand()/RAND_MAX来获得0-1的随机浮点数，然后作为光源的位置，投射到物体上。结果如下：
+
+    ![](../pics/a711.png)
+
+    **整齐采样，Uniform Sampler:**
+
+    关键在于给定num_samples下每个sample的位置。计算位置的代码如下：
+
+    ```cpp
+
+    ```
+
 
 
 
@@ -651,7 +672,9 @@ bool Sphere::intersect(const Ray &r, Hit &h, float tmin) {
 
 **记录点1：**
 
+https://blog.csdn.net/weixin_42465397/article/details/105405355
 
++代码解释（GBT）
 
 
 ## A9. Particle Systems
