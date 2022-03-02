@@ -854,6 +854,7 @@ bool Sphere::intersect(const Ray &r, Hit &h, float tmin) {
     ```cpp
     Vec3f GravityForceField::getAcceleration(const Vec3f &position, float mass, float t)const {
         return this->gravity;
+        
     }
 
     Vec3f ConstantForceField::getAcceleration(const Vec3f &position, float mass, float t)const {
