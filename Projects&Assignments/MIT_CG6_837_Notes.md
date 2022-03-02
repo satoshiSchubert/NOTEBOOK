@@ -843,8 +843,108 @@ bool Sphere::intersect(const Ray &r, Hit &h, float tmin) {
 
 ## A9. Particle Systems
 
-**记录点1：**
+实际上就是将物理公式代码化
 
+1. this指针：
 
+    this指针用来访问当前类（没法访问父类）中的数据，虽然也可以直接访问啦，但是有时候会碰到private中变量名和传入参数变量名相同的情况，这时候你写A=A就不行了，就可以改成this->A = A.当然也可以换一个变量名。
+
+2. 几种加速度的计算
+
+    ```cpp
+    Vec3f GravityForceField::getAcceleration(const Vec3f &position, float mass, float t)const {
+        return this->gravity;
+    }
+
+    Vec3f ConstantForceField::getAcceleration(const Vec3f &position, float mass, float t)const {
+        Vec3f a = force;
+        a.Divide(mass, mass, mass);
+        return a;
+    }
+
+    Vec3f RadialForceField::getAcceleration(const Vec3f &position, float mass, float t)const {
+        Vec3f dir = -1 * position;
+        return (dir * magnitude) * (1.f/mass);
+    }
+
+    Vec3f VerticalForceField::getAcceleration(const Vec3f &position, float mass, float t)const {
+        Vec3f a = magnitude * Vec3f(0.f, -1.f*position.y(), 0.f) * (1.f / mass);
+        return a;
+    }
+
+    Vec3f WindForceField::getAcceleration(const Vec3f &position, float mass, float t) const {
+        Vec3f force = magnitude * Vec3f(cos(12 * t)*random->next(), sin(12 * t)*random->next(), 0);
+        return force * (1.f / mass);
+    }
+    ```
+
+3. 积分的计算
+
+    这个比较简单
+
+    ```cpp
+    void EulerIntegrator::Update(Particle *particle, ForceField *forcefield, float t, float dt) {
+
+        Vec3f p = particle->getPosition();
+        Vec3f v = particle->getVelocity();
+        float m = particle->getMass();
+        Vec3f a = forcefield->getAcceleration(p, m, t);
+
+        Vec3f p_new = p + v * dt;
+        Vec3f v_new = v + a * dt;
+        
+        particle->setPosition(p_new);
+        particle->setVelocity(v_new);
+
+        ptc = particle;
+    }
+
+    Vec3f EulerIntegrator::getColor() {
+        if (ptc != nullptr)
+            return ptc->getColor();
+    }
+
+    void MidpointIntegrator::Update(Particle *particle, ForceField *forcefield, float t, float dt) {
+
+        Vec3f p = particle->getPosition();
+        Vec3f v = particle->getVelocity();
+        float m = particle->getMass();
+        Vec3f a = forcefield->getAcceleration(p, m, t);
+
+        Vec3f p_mid = p + v * (dt / 2.f);
+        Vec3f v_mid = v + a * (dt / 2.f);
+        Vec3f a_mid = forcefield->getAcceleration(p_mid, m, t + (dt / 2.f));
+
+        Vec3f p_new = p + v_mid * dt;
+        Vec3f v_new = v + a_mid * dt;
+
+        particle->setPosition(p_new);
+        particle->setVelocity(v_new);
+
+        ptc = particle;
+    }
+
+    Vec3f MidpointIntegrator::getColor() {
+        if (ptc != nullptr)
+            return ptc->getColor();
+    }
+    ```
+
+4. 粒子生成
+
+    实际上就是根据之前传入的参数，计算一个加入随机数之后的初始值并用来初始化Particle
+
+    ```cpp
+    Particle* HoseGenerator::Generate(float current_time, int i) {
+	Vec3f p = this->position + position_rand * random->randomVector();
+	Vec3f v = this->velocity + velocity_rand * random->randomVector();
+	Vec3f c = this->colors + color_rand * random->randomVector();
+	Vec3f dc = this->dead_color + color_rand * random->randomVector();
+	float m = this->mass + mass_rand * random->next();
+	float l = this->lifespan + lifespan_rand * random->next();
+	Particle *ptc = new Particle(p, v, c, dc, m, l);
+	return ptc;
+    }
+    ```
 
 ## END
