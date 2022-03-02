@@ -947,4 +947,8 @@ bool Sphere::intersect(const Ray &r, Hit &h, float tmin) {
     }
     ```
 
+    效果还是很酷的
+
+    ![](../pics/a901.png)
+
 ## END
