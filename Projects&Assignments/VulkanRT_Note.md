@@ -101,7 +101,7 @@ vkCreateSwapchainKHR(device, &swapCreateInfo, NULL, &swap);
 
 【附录】
 
-1. 交换链 SwapChain
+1. 交换链 SwapChain <br>
    ![](../pics/vkswapchain.png)
 
 
