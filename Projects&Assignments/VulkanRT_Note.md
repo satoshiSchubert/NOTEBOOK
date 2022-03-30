@@ -54,6 +54,7 @@ reference：
 ### Vulkan编程基本流程
 
 ```cpp
+/*----------------------------------------------*/
 //第一步：先创建一个Vulkan实例。每个实例之间完全孤立
 VkInstance inst;
 vkCreateInstance(&instanceCreateInfo, NULL, &inst);
@@ -68,6 +69,15 @@ VkDeviceCreateInfo deviceCreateInfo = {
 //从物理硬件获取完信息之后，绑定到逻辑硬件上：
 VkDevice device;
 vkCreateDevice(phys[0], &deviceCreateInfo, NULL, &device);
+//有了一个逻辑Device之后，就可以开始创建其他东西了
+//在Vulkan中，声明一个Buffer或者Image时，要声明一下他的用途
+//同时，Image需要通过VkImageView来使用
+
+/*----------------------------------------------*/
+/*首先，您从所需的任何本机窗口信息创建一个VkSurfaceKHR。
+一旦你有了一个表面，你就可以为那个表面创建一个VkSwapchainKHR。您需要查询诸如该表面上支持哪些格式、链中可以拥有多少个后备缓冲区等信息。
+然后，您可以在VkSwapchainKHRvia中获取实际图像vkGetSwapchainImagesKHR()。这些是普通VkImage句柄，但您无法控制它们的创建或内存绑定——这一切都是为您完成的。不过，您将不得不创建一个VkImageView。
+当你想渲染到交换链中的一个图像时，你可以调用vkAcquireNextImageKHR()它将返回给你链中下一个图像的索引。您可以对其进行渲染，然后vkQueuePresentKHR()使用相同的索引调用以将其呈现给显示器。*/
 
 // fetch vkCreateWin32SurfaceKHR extension function pointer via vkGetInstanceProcAddr
 //与其他图形API一样，Vulkan将窗口系统方面与核心图形API分离开来。
@@ -87,16 +97,162 @@ VkSwapchainCreateInfoKHR swapCreateInfo = {
 VkSwapchainKHR swap;
 vkCreateSwapchainKHR(device, &swapCreateInfo, NULL, &swap);
 
+/*----------------------------------------------*/
+// Again this should be properly enumerated
+VkImage images[4]; uint32_t swapCount;
+vkGetSwapchainImagesKHR(device, swap, &swapCount, images);
 
+uint32_t currentSwapImage;
+//调用vkAcquireNextImageKHR(),它将返回给你链中下一个图像的索引。
+vkAcquireNextImageKHR(device, swap, UINT64_MAX, presentCompleteSemaphore, NULL, &currentSwapImage);
 
+// pass appropriate creation info to create view of image
+VkImageView backbufferView;
+vkCreateImageView(device, &backbufferViewCreateInfo, NULL, &backbufferView)
 
+VkQueue queue;
+vkGetDeviceQueue(device, 0, 0, &queue);
 
-//有了一个逻辑Device之后，就可以开始创建其他东西了
-//在Vulkan中，声明一个Buffer或者Image时，要声明一下他的用途
-//同时，Image需要通过VkImageView来使用
+/*----------------------------------------------*/
+//创建渲染管道
+VkRenderPassCreateInfo renderpassCreateInfo = {
+   // here you will specify the total list of attachments
+   // (which in this case is just one, that's e.g. R8G8B8A8_UNORM)
+   // as well as describe a single subpass, using that attachment
+   // for color and with no depth-stencil attachment
+};
 
+VkRenderPass renderpass;
+vkCreateRenderPass(device, &renderpassCreateInfo, NULL, &renderpass);
 
+VkFramebufferCreateInfo framebufferCreateInfo = {
+   // include backbufferView here to render to, and renderpass to be
+   // compatible with.
+};
 
+VkFramebuffer framebuffer;
+vkCreateFramebuffer(device, &framebufferCreateInfo, NULL, &framebuffer);
+
+VkDescriptorSetLayoutCreateInfo descSetLayoutCreateInfo = {
+   // whatever we want to match our shader. e.g. Binding 0 = UBO for a simple
+   // case with just a vertex shader UBO with transform data.
+};
+
+//【参见附录2-descriptorSetLayout的Binding和Shader中layout的关系】
+VkDescriptorSetLayout descSetLayout;
+vkCreateDescriptorSetLayout(device, &descSetLayoutCreateInfo, NULL, &descSetLayout);
+
+VkPipelineCreateInfo pipeLayoutCreateInfo = {
+   // one descriptor set, with layout descSetLayout
+};
+
+VkPipelineLayout pipeLayout;
+vkCreatePipelineLayout(device, &pipeLayoutCreateInfo, NULL, &pipeLayout);
+
+// upload the SPIR-V shaders
+//传入Shader模块
+VkShaderModule vertModule, fragModule;
+vkCreateShaderModule(device, &vertModuleInfoWithSPIRV, NULL, &vertModule);
+vkCreateShaderModule(device, &fragModuleInfoWithSPIRV, NULL, &fragModule);
+
+VkGraphicsPipelineCreateInfo pipeCreateInfo = {
+   // there are a LOT of sub-structures under here to fully specify
+   // the PSO state. It will reference vertModule, fragModule and pipeLayout
+   // as well as renderpass for compatibility
+};
+
+VkPipeline pipeline;
+vkCreateGraphicsPipelines(device, NULL, 1, &pipeCreateInfo, NULL, &pipeline);
+
+VkDescriptorPoolCreateInfo descPoolCreateInfo = {
+   // the creation info states how many descriptor sets are in this pool
+};
+
+VkDescriptorPool descPool;
+vkCreateDescriptorPool(device, &descPoolCreateInfo, NULL, &descPool);
+
+VkDescriptorSetAllocateInfo descAllocInfo = {
+   // from pool descPool, with layout descSetLayout
+};
+
+VkDescriptorSet descSet;
+vkAllocateDescriptorSets(device, &descAllocInfo, &descSet);
+
+VkBufferCreateInfo bufferCreateInfo = {
+   // buffer for uniform usage, of appropriate size
+};
+
+VkMemoryAllocateInfo memAllocInfo = {
+   // skipping querying for memory requirements. Let's assume the buffer
+   // can be placed in host visible memory.
+};
+VkBuffer buffer;
+VkDeviceMemory memory;
+//Vulkan中，每创建一个Buffer或者Memory都要：1.说明其用途；2.给他分配内存，完了把内存绑定上去
+vkCreateBuffer(device, &bufferCreateInfo, NULL, &buffer);
+vkAllocateMemory(device, &memAllocInfo, NULL, &memory);
+vkBindBufferMemory(device, buffer, memory, 0);
+
+void *data = NULL;
+//Memory Mapping技术，是指把Vulkan当中生成的任何内存（VkDeviceMemory）映射到CPU端的一个void*指针的过程，这样我们就可以从CPU端读取或者写入这块内存。
+vkMapMemory(device, memory, 0, VK_WHOLE_SIZE, 0, &data);
+memcpy(...)//把数据给存到映射出来的指针里，数据从cpu到gpu
+vkUnmapMemory(device, memory);
+
+VkWriteDescriptorSet descriptorWrite = {
+   // write the details of our UBO buffer into binding 0
+};
+
+vkUpdateDescriptorSets(dev, 1, &descriptorWrite, 0, NULL);
+
+// finally we can render something!
+// ...
+// Almost.
+
+/*----------------------------------------------*/
+//下面应该就是一些通用流程了
+VkCommandPoolCreateInfo commandPoolCreateInfo = {
+   // nothing interesting
+};
+
+VkCommandPool commandPool;
+vkCreateCommandPool(dev, &commandPoolCreateInfo, NULL, &commandPool);
+
+VkCommandBufferAllocateInfo commandAllocInfo = {
+   // allocate from commandPool
+};
+VkCommandBuffer cmd;
+vkAllocateCommandBuffers(dev, &commandAllocInfo, &cmd);
+
+// Now we can render!
+
+vkBeginCommandBuffer(cmd, &cmdBeginInfo);
+vkCmdBeginRenderPass(cmd, &renderpassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+// bind the pipeline
+vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+// bind the descriptor set
+vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                        descSetLayout, 1, &descSet, 0, NULL);
+// set the viewport
+vkCmdSetViewport(cmd, 1, &viewport);
+// draw the triangle
+vkCmdDraw(cmd, 3, 1, 0, 0);
+vkCmdEndRenderPass(cmd);
+vkEndCommandBuffer(cmd);
+
+VkSubmitInfo submitInfo = {
+   // this contains a reference to the above cmd to submit
+};
+
+vkQueueSubmit(queue, 1, &submitInfo, NULL);
+
+// now we can present
+VkPresentInfoKHR presentInfo = {
+   // swap and currentSwapImage are used here
+};
+vkQueuePresentKHR(queue, &presentInfo);
+
+// Wait for everything to be done, and destroy objects
 ```
 
 【附录】
@@ -105,18 +261,14 @@ vkCreateSwapchainKHR(device, &swapCreateInfo, NULL, &swap);
    ![](../pics/vkswapchain.png)
 
 
-
-
+2. descriptorSetLayout的Binding和Shader中layout的关系<br>
+   ![](../pics/vkbinding.png)
 
 
 ## VulkanRT部分
 
 -----
+ 
+### BLAS
 
-8. 初始化和参数Setup
-9. **加速结构**
-1. 构建BLAS
-2. 构建TLAS
-3. 接口：
-      1. 原代码封装的很好，还是需要自己拆出来一个最小系统才看得清
-      2. 在Vulkan中，指令是通过类似于vkCmdxxx()的接口来写入到Command buffer，驱动会负责生成适配当前GPU的二进制指令内容。
+
