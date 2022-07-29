@@ -6,7 +6,7 @@
 
 ### core/Accelerator
 
-暂时没有什么可以写的
+主要是接口API等
 
 ### core/Element
 
@@ -39,7 +39,7 @@ TODO：
 
 ### core/Filter
 
-暂时没有什么可以写的
+主要是接口API等
 
 ### core/Integrator
 
